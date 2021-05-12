@@ -1,29 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Xunit;
 
 namespace ArcticFox.Tests
 {
-    public class TestOutputCodec : ISpanConsumer<char>
+    public class TestEncodeOutputCodec : ISpanConsumer<byte>
     {
-        public List<string> m_received = new List<string>();
+        public List<string> m_outputAsStrings = new List<string>();
         public bool m_aborted;
 
         public void Reset()
         {
-            m_received.Clear();
+            m_outputAsStrings.Clear();
             m_aborted = false;
         }
 
-        public void Input(ReadOnlySpan<char> input)
+        public void Input(ReadOnlySpan<byte> input)
         {
-            m_received.Add(input.ToString());
+            m_outputAsStrings.Add(Encoding.ASCII.GetString(input));
         }
 
-        public void AssertReceived(params string[] expected)
+        public void AssertOutput(params string[] expected)
         {
             Assert.False(m_aborted);
-            Assert.Equal(expected, m_received);
+            Assert.Equal(expected, m_outputAsStrings);
             Reset();
         }
 
@@ -35,7 +36,6 @@ namespace ArcticFox.Tests
         
         public void Abort()
         {
-            // todo: how can i make this happen for text decoding issues etc...
             m_aborted = true;
         }
     }

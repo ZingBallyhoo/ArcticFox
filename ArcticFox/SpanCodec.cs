@@ -8,7 +8,7 @@ namespace ArcticFox
         
         public abstract void Input(ReadOnlySpan<TFrom> input);
 
-        public void DecoderOutput(ReadOnlySpan<TTo> output)
+        public void CodecOutput(ReadOnlySpan<TTo> output)
         {
             m_next.Input(output);
         }

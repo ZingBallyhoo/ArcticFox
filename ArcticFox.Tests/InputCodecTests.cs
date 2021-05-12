@@ -2,12 +2,12 @@ using Xunit;
 
 namespace ArcticFox.Tests
 {
-    public class XmlReceiverTests
+    public class InputCodecTests
     {
         [Fact]
         public void Test1()
         {
-            using var receiver = new TestCodecChain();
+            using var receiver = new TestDecodeCodecChain();
             receiver.DataInput("Hello\0");
             receiver.AssertReceived("Hello");
         }
@@ -15,7 +15,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void TestJoined()
         {
-            using var receiver = new TestCodecChain();
+            using var receiver = new TestDecodeCodecChain();
             receiver.DataInput("Hello\0World\0");
             receiver.AssertReceived("Hello", "World");
         }
@@ -23,7 +23,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void TestSplit()
         {
-            using var receiver = new TestCodecChain();
+            using var receiver = new TestDecodeCodecChain();
             receiver.DataInput("H");
             receiver.AssertReceived();
             receiver.DataInput("ello");
@@ -36,7 +36,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void TestAsciiText()
         {
-            using var receiver = new TestCodecChain();
+            using var receiver = new TestDecodeCodecChain();
             receiver.DataInput("\xFF\xFF\xFF\0");
             receiver.AssertReceived("???");
         }
@@ -44,7 +44,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void TestAbortedNoText()
         {
-            using var receiver = new TestCodecChain();
+            using var receiver = new TestDecodeCodecChain();
             receiver.DataInput("\0\0");
             receiver.AssertAborted();
         }
@@ -56,7 +56,7 @@ namespace ArcticFox.Tests
             var str = new string('a', size);
             var inputStr = str + "\0";
 
-            using var receiver = new TestCodecChain();
+            using var receiver = new TestDecodeCodecChain();
             for (var i = 0; i < 10; i++)
             {
                 receiver.DataInput("H\0");

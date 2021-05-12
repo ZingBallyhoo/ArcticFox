@@ -3,7 +3,7 @@ using CommunityToolkit.HighPerformance.Buffers;
 
 namespace ArcticFox
 {
-    public class ZeroDelimitedCodec : SpanCodec<byte, byte>, IDisposable
+    public class ZeroDelimitedDecodeCodec : SpanCodec<byte, byte>, IDisposable
     {
         private MemoryOwner<byte> m_recvBuffer = MemoryOwner<byte>.Empty;
         private int m_recvBufferPos;
@@ -32,7 +32,7 @@ namespace ArcticFox
                 if (idxOf0 != -1 && m_recvBufferPos == 0)
                 {
                     // no need to copy, we have received all in 1 blob
-                    DecoderOutput(packetSpan);
+                    CodecOutput(packetSpan);
                     continue;
                 }
                 
@@ -41,7 +41,7 @@ namespace ArcticFox
                 
                 if (idxOf0 != -1)
                 {
-                    DecoderOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos));
+                    CodecOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos));
                     m_recvBufferPos = 0;
                 } else
                 {
@@ -84,7 +84,7 @@ namespace ArcticFox
             GC.SuppressFinalize(this);
         }
         
-        ~ZeroDelimitedCodec()
+        ~ZeroDelimitedDecodeCodec()
         {
             DisposeCurrentBuffer();
         }

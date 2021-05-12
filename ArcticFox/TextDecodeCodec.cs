@@ -4,12 +4,14 @@ using CommunityToolkit.HighPerformance.Buffers;
 
 namespace ArcticFox
 {
-    public class TextCodec : SpanCodec<byte, char>
+    public class TextDecodeCodec : SpanCodec<byte, char>
     {
-        private Decoder m_decoder;
+        private readonly Encoding m_encoding;
+        private readonly Decoder m_decoder;
         
-        public TextCodec(Encoding encoding)
+        public TextDecodeCodec(Encoding encoding)
         {
+            m_encoding = encoding;
             m_decoder = encoding.GetDecoder();
         }
         
@@ -20,8 +22,9 @@ namespace ArcticFox
                 Abort();
                 return;
             }
-            
-            using var bufferOwner = SpanOwner<char>.Allocate(buffer.Length); // we will have at least len chars
+
+            var maxChars = m_encoding.GetMaxCharCount(buffer.Length);
+            using var bufferOwner = SpanOwner<char>.Allocate(maxChars);
             var charSpan = bufferOwner.Span;
             
             m_decoder.Convert(buffer, charSpan, true, out var bytesUsed, out var charCount, out var completed);
@@ -36,7 +39,7 @@ namespace ArcticFox
             }
 
             charSpan = charSpan.Slice(0, charCount);
-            DecoderOutput(charSpan);
+            CodecOutput(charSpan);
         }
     }
 }
