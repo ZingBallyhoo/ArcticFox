@@ -2,7 +2,7 @@ using System;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 
-namespace ArcticFox
+namespace ArcticFox.Codec
 {
     public class ZeroDelimitedEncodeCodec : SpanCodec<char, char>
     {

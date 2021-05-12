@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using CommunityToolkit.HighPerformance.Buffers;
 
-namespace ArcticFox
+namespace ArcticFox.Codec
 {
     public class TextEncodeCodec : SpanCodec<char, byte>
     {

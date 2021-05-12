@@ -1,7 +1,7 @@
 using System;
 using CommunityToolkit.HighPerformance.Buffers;
 
-namespace ArcticFox
+namespace ArcticFox.Codec
 {
     public class ZeroDelimitedDecodeCodec : SpanCodec<byte, byte>, IDisposable
     {

@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox", "ArcticFox\ArcticFox.csproj", "{12AE2C99-960F-4834-A079-BA038061C3A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox.Codec", "ArcticFox.Codec\ArcticFox.Codec.csproj", "{12AE2C99-960F-4834-A079-BA038061C3A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox.Tests", "ArcticFox.Tests\ArcticFox.Tests.csproj", "{9F134785-326F-43E5-B7EC-565C953116FE}"
 EndProject

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ArcticFox\ArcticFox.csproj" />
+    <ProjectReference Include="..\ArcticFox.Codec\ArcticFox.Codec.csproj" />
   </ItemGroup>
 
 </Project>

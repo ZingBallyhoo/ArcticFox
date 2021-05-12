@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ArcticFox.Codec;
 using Xunit;
 
 namespace ArcticFox.Tests

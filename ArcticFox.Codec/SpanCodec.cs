@@ -1,6 +1,6 @@
 using System;
 
-namespace ArcticFox
+namespace ArcticFox.Codec
 {
     public abstract class SpanCodec<TFrom, TTo> : ISpanConsumer<TFrom>
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace ArcticFox
+namespace ArcticFox.Codec
 {
     public interface ISpanConsumer<T>
     {
