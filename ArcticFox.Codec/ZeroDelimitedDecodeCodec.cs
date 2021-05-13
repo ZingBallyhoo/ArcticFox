@@ -10,7 +10,7 @@ namespace ArcticFox.Codec
 
         public bool m_canGrow = true;
 
-        public override void Input(ReadOnlySpan<byte> input)
+        public override void Input(ReadOnlySpan<byte> input, object? state)
         {
             var packetOffset = 0;
             while (packetOffset < input.Length)
@@ -32,7 +32,7 @@ namespace ArcticFox.Codec
                 if (idxOf0 != -1 && m_recvBufferPos == 0)
                 {
                     // no need to copy, we have received all in 1 blob
-                    CodecOutput(packetSpan);
+                    CodecOutput(packetSpan, state);
                     continue;
                 }
                 
@@ -41,7 +41,7 @@ namespace ArcticFox.Codec
                 
                 if (idxOf0 != -1)
                 {
-                    CodecOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos));
+                    CodecOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos), state);
                     m_recvBufferPos = 0;
                 } else
                 {

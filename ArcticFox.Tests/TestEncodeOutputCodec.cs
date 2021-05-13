@@ -17,7 +17,7 @@ namespace ArcticFox.Tests
             m_aborted = false;
         }
 
-        public void Input(ReadOnlySpan<byte> input)
+        public void Input(ReadOnlySpan<byte> input, object? state)
         {
             m_outputAsStrings.Add(Encoding.ASCII.GetString(input));
         }

@@ -15,7 +15,7 @@ namespace ArcticFox.Codec
             m_encoder = encoding.GetEncoder();
         }
         
-        public override void Input(ReadOnlySpan<char> input)
+        public override void Input(ReadOnlySpan<char> input, object? state)
         {
             var maxBytes = m_encoding.GetMaxByteCount(input.Length);
             using var buffer = SpanOwner<byte>.Allocate(maxBytes);
@@ -23,7 +23,7 @@ namespace ArcticFox.Codec
             if (!completed) throw new Exception();
 
             var usedData = buffer.Span.Slice(0, bytesUsed);
-            CodecOutput(usedData);
+            CodecOutput(usedData, state);
         }
     }
 }

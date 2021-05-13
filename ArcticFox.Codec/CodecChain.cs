@@ -50,4 +50,19 @@ namespace ArcticFox.Codec
             }
         }
     }
+
+    public class CodecChain<TFrom, TTo> : SpanCodec<TFrom, TTo>
+    {
+        private readonly CodecChain m_chain;
+        
+        public CodecChain(CodecChain chain)
+        {
+            m_chain = chain;
+        }
+
+        public override void Input(ReadOnlySpan<TFrom> input, object? state)
+        {
+            m_chain.Head<TFrom>().Input(input, state);
+        }
+    }
 }

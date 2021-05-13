@@ -6,11 +6,11 @@ namespace ArcticFox.Codec
     {
         public ISpanConsumer<TTo> m_next;
         
-        public abstract void Input(ReadOnlySpan<TFrom> input);
+        public abstract void Input(ReadOnlySpan<TFrom> input, object? state);
 
-        public void CodecOutput(ReadOnlySpan<TTo> output)
+        public void CodecOutput(ReadOnlySpan<TTo> output, object? state)
         {
-            m_next.Input(output);
+            m_next.Input(output, state);
         }
 
         public virtual void Abort()

@@ -6,7 +6,9 @@ namespace ArcticFox.Codec
 {
     public class ZeroDelimitedEncodeCodec : SpanCodec<char, char>
     {
-        public override void Input(ReadOnlySpan<char> input)
+        public static readonly ZeroDelimitedEncodeCodec s_instance = new ZeroDelimitedEncodeCodec();
+        
+        public override void Input(ReadOnlySpan<char> input, object? state)
         {
             var countOf0 = input.Count('\0');
             if (input[^1] == '\0')
@@ -18,7 +20,7 @@ namespace ArcticFox.Codec
                     return;
                 }
                 
-                CodecOutput(input);
+                CodecOutput(input, state);
                 return;
             }
             
@@ -32,7 +34,7 @@ namespace ArcticFox.Codec
             using var owner = SpanOwner<char>.Allocate(input.Length + 1);
             input.CopyTo(owner.Span);
             owner.Span[input.Length] = '\0';
-            CodecOutput(owner.Span);
+            CodecOutput(owner.Span, state);
         }
     }
 }

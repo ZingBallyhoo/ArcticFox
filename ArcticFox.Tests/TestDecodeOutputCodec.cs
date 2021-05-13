@@ -16,7 +16,7 @@ namespace ArcticFox.Tests
             m_aborted = false;
         }
 
-        public void Input(ReadOnlySpan<char> input)
+        public void Input(ReadOnlySpan<char> input, object? state)
         {
             m_received.Add(input.ToString());
         }

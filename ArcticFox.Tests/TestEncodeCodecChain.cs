@@ -23,7 +23,7 @@ namespace ArcticFox.Tests
 
         public void DataInput(string str)
         {
-            m_chain.Head<char>().Input(str);
+            m_chain.Head<char>().Input(str, null);
         }
 
         public void Dispose()

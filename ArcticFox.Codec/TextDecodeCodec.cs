@@ -15,7 +15,7 @@ namespace ArcticFox.Codec
             m_decoder = encoding.GetDecoder();
         }
         
-        public override void Input(ReadOnlySpan<byte> buffer)
+        public override void Input(ReadOnlySpan<byte> buffer, object? state)
         {
             if (buffer.Length == 0)
             {
@@ -39,7 +39,7 @@ namespace ArcticFox.Codec
             }
 
             charSpan = charSpan.Slice(0, charCount);
-            CodecOutput(charSpan);
+            CodecOutput(charSpan, state);
         }
     }
 }
