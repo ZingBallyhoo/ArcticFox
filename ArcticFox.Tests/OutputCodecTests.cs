@@ -1,3 +1,4 @@
+using ArcticFox.Tests.Impls;
 using Xunit;
 
 namespace ArcticFox.Tests

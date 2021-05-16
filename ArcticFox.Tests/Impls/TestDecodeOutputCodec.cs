@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ArcticFox.Codec;
 using Xunit;
 
-namespace ArcticFox.Tests
+namespace ArcticFox.Tests.Impls
 {
     public class TestDecodeOutputCodec : ISpanConsumer<char>
     {

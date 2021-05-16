@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ArcticFox.Codec\ArcticFox.Codec.csproj" />
+    <ProjectReference Include="..\ArcticFox.Net\ArcticFox.Net.csproj" />
   </ItemGroup>
 
 </Project>

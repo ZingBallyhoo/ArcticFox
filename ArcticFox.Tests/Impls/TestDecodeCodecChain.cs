@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using ArcticFox.Codec;
 
-namespace ArcticFox.Tests
+namespace ArcticFox.Tests.Impls
 {
     public class TestDecodeCodecChain : IDisposable
     {
