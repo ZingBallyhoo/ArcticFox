@@ -6,7 +6,7 @@ namespace ArcticFox.Net.Util
     public class AsyncLockToken<T> : IDisposable
     {
         private readonly SemaphoreSlim m_sema;
-        public readonly T m_value;
+        public T m_value;
         
         public AsyncLockToken(SemaphoreSlim sema, T value)
         {
