@@ -39,13 +39,11 @@ namespace ArcticFox.Codec
                 if (!GrowBufferBy(packetSize)) break;
                 packetSpan.CopyTo(m_recvBuffer.Span.Slice(m_recvBufferPos));
                 
+                m_recvBufferPos += packetSize;
                 if (idxOf0 != -1)
                 {
                     CodecOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos), state);
                     m_recvBufferPos = 0;
-                } else
-                {
-                    m_recvBufferPos += packetSize;
                 }
             }
         }

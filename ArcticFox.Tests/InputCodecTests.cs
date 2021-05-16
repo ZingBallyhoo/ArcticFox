@@ -34,6 +34,15 @@ namespace ArcticFox.Tests
         }
         
         [Fact]
+        public void TestMissingDataIssue()
+        {
+            using var receiver = new TestDecodeCodecChain();
+            receiver.DataInput("H");
+            receiver.DataInput("ello\0");
+            receiver.AssertReceived("Hello");
+        }
+        
+        [Fact]
         public void TestAsciiText()
         {
             using var receiver = new TestDecodeCodecChain();
