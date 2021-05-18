@@ -10,13 +10,15 @@ namespace ArcticFox.Codec
 
         public bool m_canGrow = true;
 
+        public byte m_delimitByte = 0;
+
         public override void Input(ReadOnlySpan<byte> input, object? state)
         {
             var packetOffset = 0;
             while (packetOffset < input.Length)
             {
                 var packetToEndSpan = input.Slice(packetOffset);
-                var idxOf0 = packetToEndSpan.IndexOf((byte)0);
+                var idxOf0 = packetToEndSpan.IndexOf(m_delimitByte);
 
                 int packetSize;
                 if (idxOf0 == -1) packetSize = packetToEndSpan.Length;
