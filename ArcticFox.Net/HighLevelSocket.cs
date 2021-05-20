@@ -4,12 +4,14 @@ using ArcticFox.Codec;
 using ArcticFox.Net.Batching;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Sockets;
+using ArcticFox.Net.Util;
 
 namespace ArcticFox.Net
 {
     public class HighLevelSocket : IBroadcaster, IAsyncDisposable
     {
         public readonly SocketInterface m_socket;
+        public readonly TaskQueue m_taskQueue;
         private readonly NetEventQueue m_netEventQueue;
 
         protected CodecChain? m_netInputCodec;
@@ -18,6 +20,7 @@ namespace ArcticFox.Net
         public HighLevelSocket(SocketInterface socket)
         {
             m_socket = socket;
+            m_taskQueue = new TaskQueue();
             m_netEventQueue = new NetEventQueue();
         }
 
