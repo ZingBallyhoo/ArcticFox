@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 using ArcticFox.Codec;
 using ArcticFox.Net.Event;
 
@@ -13,18 +15,42 @@ namespace ArcticFox.Net
                 var chain = new CodecChain();
                 chain.AddCodec(new ZeroDelimitedEncodeCodec());
                 chain.AddCodec(new TextEncodeCodec(Encoding.ASCII));
-                chain.AddCodec(BroadcasterNetEventFactory.s_instance);
+                chain.AddCodec(NetEventFactory.s_instance);
                 return new CodecChain<char, byte>(chain);
             });
         
-        public static void Broadcast<T>(this T bc, ReadOnlySpan<char> msg) where T: IBroadcaster
+        public static ValueTask Broadcast<T>(this T bc, string msg) where T: IBroadcaster
         {
-            s_zeroTerminatedStringCodec.Value.Input(msg, bc);
+            return Broadcast(bc, msg.AsMemory());
         }
         
-        public static void Broadcast<T>(this T bc, ReadOnlySpan<byte> msg) where T: IBroadcaster
+        public static ValueTask Broadcast<T>(this T bc, ReadOnlyMemory<char> msg) where T: IBroadcaster
         {
-            BroadcasterNetEventFactory.s_instance.Input(msg, bc);
+            object? ev = null;
+            s_zeroTerminatedStringCodec.Value.Input(msg, ref ev);
+            Debug.Assert(ev != null);
+            var netEv = (NetEvent) ev;
+            return bc.BroadcastEventOwningCreation(netEv);
+        }
+
+        public static ValueTask Broadcast<T>(this T bc, ReadOnlyMemory<byte> msg) where T: IBroadcaster
+        {
+            object? ev = null;
+            NetEventFactory.s_instance.Input(msg, ref ev);
+            Debug.Assert(ev != null);
+            var netEv = (NetEvent) ev;
+            return bc.BroadcastEventOwningCreation(netEv);
+        }
+        
+        public static async ValueTask BroadcastEventOwningCreation<T>(this T bc, NetEvent ev) where T: IBroadcaster
+        {
+            try
+            {
+                await bc.BroadcastEvent(ev);
+            } finally
+            {
+                ev.ReleaseCreationRef();
+            }
         }
     }
 }

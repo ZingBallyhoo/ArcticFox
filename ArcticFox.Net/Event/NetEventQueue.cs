@@ -14,14 +14,14 @@ namespace ArcticFox.Net.Event
         
         public int m_maxQueueSize = 100;
         
-        public void BroadcastEvent(NetEvent ev)
+        public ValueTask BroadcastEvent(NetEvent ev)
         {
-            EnqueueEvent(ev);
+            return EnqueueEvent(ev);
         }
 
-        private void EnqueueEvent(NetEvent @event)
+        private async ValueTask EnqueueEvent(NetEvent @event)
         {
-            using (var queueToken = m_eventQueue.GetSync())
+            using (var queueToken = await m_eventQueue.Get())
             {
                 var queue = queueToken.m_value;
                 if (!m_acceptingEvents) return;

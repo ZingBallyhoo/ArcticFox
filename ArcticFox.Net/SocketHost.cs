@@ -181,7 +181,7 @@ namespace ArcticFox.Net
                 {
                     var count = await socket.ReceiveBuffer(receiveMemory);
                     if (count == 0) break;
-                    hl.NetworkInput(new ReadOnlySpan<byte>(receiveBuffer, 0, count));
+                    hl.NetworkInput(receiveMemory.Slice(0, count));
                     await hl.HandlePendingSendEvents(ctx);
                 }
             } catch (Exception e)

@@ -60,9 +60,9 @@ namespace ArcticFox.Codec
             m_chain = chain;
         }
 
-        public override void Input(ReadOnlySpan<TFrom> input, object? state)
+        public override void Input(ReadOnlyMemory<TFrom> input, ref object? state)
         {
-            m_chain.Head<TFrom>().Input(input, state);
+            m_chain.Head<TFrom>().Input(input, ref state);
         }
     }
 }

@@ -15,15 +15,15 @@ namespace ArcticFox.Codec
             m_encoder = encoding.GetEncoder();
         }
         
-        public override void Input(ReadOnlySpan<char> input, object? state)
+        public override void Input(ReadOnlyMemory<char> input, ref object? state)
         {
             var maxBytes = m_encoding.GetMaxByteCount(input.Length);
-            using var buffer = SpanOwner<byte>.Allocate(maxBytes);
-            m_encoder.Convert(input, buffer.Span, true, out var charsUsed, out var bytesUsed, out var completed);
+            using var buffer = MemoryOwner<byte>.Allocate(maxBytes);
+            m_encoder.Convert(input.Span, buffer.Span, true, out var charsUsed, out var bytesUsed, out var completed);
             if (!completed) throw new Exception();
 
-            var usedData = buffer.Span.Slice(0, bytesUsed);
-            CodecOutput(usedData, state);
+            var usedData = buffer.Memory.Slice(0, bytesUsed);
+            CodecOutput(usedData, ref state);
         }
     }
 }

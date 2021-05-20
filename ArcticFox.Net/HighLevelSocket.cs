@@ -21,11 +21,11 @@ namespace ArcticFox.Net
             m_netEventQueue = new NetEventQueue();
         }
 
-        public virtual void NetworkInput(ReadOnlySpan<byte> data)
+        public virtual void NetworkInput(ReadOnlyMemory<byte> data)
         {
             var inputCodec = m_netInputCodec;
             if (inputCodec == null) throw new NullReferenceException("No input codec");
-            inputCodec.Head<byte>().Input(data, null);
+            inputCodec.Head<byte>().Input2(data);
         }
 
         public void Close()
@@ -43,18 +43,18 @@ namespace ArcticFox.Net
             return m_netEventQueue.FlushEventsToSocket(m_socket, ctx);
         }
         
-        public void BroadcastEvent(NetEvent ev)
+        public ValueTask BroadcastEvent(NetEvent ev)
         {
-            if (m_preNetTransform != null)
-            {
-                lock (m_preNetTransform) // sanity: prevent stateful crypto out of order or corruption?
-                {
-                    m_preNetTransform.Input(ev.GetMemory().Span, m_netEventQueue);
-                }
-            } else
-            {
-                m_netEventQueue.BroadcastEvent(ev);
-            }
+            //if (m_preNetTransform != null)
+            //{
+            //    lock (m_preNetTransform) // sanity: prevent stateful crypto out of order or corruption?
+            //    {
+            //        m_preNetTransform.Input2(ev.GetMemory().Span, m_netEventQueue);
+            //    }
+            //} else
+            //{
+                return m_netEventQueue.BroadcastEvent(ev);
+            //}
         }
 
         public async ValueTask DisposeAsync()

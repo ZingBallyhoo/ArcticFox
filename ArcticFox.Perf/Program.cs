@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Event;
 using ArcticFox.Tests;
@@ -34,25 +35,25 @@ namespace ArcticFox.Perf
         }
 
         [Benchmark]
-        public void Filtered()
+        public async Task Filtered()
         {
             var filter = new FilterBroadcaster<string>(m_owner.m_kidsExcludeFilterAction, c_kidToFilter);
-            filter.Broadcast(c_messageToSend);
+            await filter.Broadcast(c_messageToSend);
         }
         
-        [Benchmark]
-        public void Filtered2()
-        {
-            using (m_filter2.Enter(c_kidToFilter))
-            {
-                m_filter2.Broadcast(c_messageToSend);
-            }
-        }
+        //[Benchmark]
+        //public void Filtered2()
+        //{
+        //    using (m_filter2.Enter(c_kidToFilter))
+        //    {
+        //        m_filter2.Broadcast(c_messageToSend);
+        //    }
+        //}
         
         [Benchmark]
-        public void Unfiltered()
+        public async Task Unfiltered()
         {
-            m_owner.Broadcast(c_messageToSend);
+            await m_owner.Broadcast(c_messageToSend);
         }
     }
 }
