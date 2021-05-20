@@ -43,7 +43,6 @@ namespace ArcticFox.Tests
         public readonly Dictionary<string, T> m_kids;
 
         public readonly Func<NetEvent, string, ValueTask> m_kidsExcludeFilterAction;
-        public readonly FilterBroadcaster2< string> m_kidsExcludeFilter;
 
         public FilterOwner()
         {
@@ -61,7 +60,6 @@ namespace ArcticFox.Tests
             }
 
             m_kidsExcludeFilterAction = KidsExcludeFilterAction;
-            m_kidsExcludeFilter = new FilterBroadcaster2<string>(m_kidsExcludeFilterAction);
         }
 
         private async ValueTask KidsExcludeFilterAction(NetEvent ne, string kidToExclude)
