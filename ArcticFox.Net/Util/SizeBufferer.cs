@@ -40,7 +40,7 @@ namespace ArcticFox.Net.Util
             return m_buffer;
         }
 
-        public bool ConsumeAndGet(ref ReadOnlySpan<byte> data, out ReadOnlySpan<byte> output)
+        public bool ConsumeAndGet(ref ReadOnlyMemory<byte> data, out ReadOnlyMemory<byte> output)
         {
             output = default;
 
@@ -64,19 +64,19 @@ namespace ArcticFox.Net.Util
                 return true;
             }
             var buffer = EnsureBuffer();
-            var writeSlice = new Span<byte>(buffer, currentOffset, currentSize - currentOffset);
+            var writeSlice = new Memory<byte>(buffer, currentOffset, currentSize - currentOffset);
             readSlice.CopyTo(writeSlice);
             m_bufferOffset += amountToRead;
 
             if (m_bufferOffset == currentSize)
             {
-                output = new ReadOnlySpan<byte>(m_buffer, 0, currentSize);
+                output = new ReadOnlyMemory<byte>(m_buffer, 0, currentSize);
                 return true;
             }
             return false;
         }
 
-        public bool Consume(ref ReadOnlySpan<byte> data)
+        public bool Consume(ref ReadOnlyMemory<byte> data)
         {
             return ConsumeAndGet(ref data, out _);
         }

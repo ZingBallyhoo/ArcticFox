@@ -12,15 +12,16 @@ namespace ArcticFox.Tests
         {
             var header = new FixedSizeHeader(4);
 
-            var buffer = new Span<byte>(new byte[8]);
-            BinaryPrimitives.WriteUInt32BigEndian(buffer, 0xDEADBEEF);
-            BinaryPrimitives.WriteUInt32BigEndian(buffer.Slice(4), 0xABCDEF);
+            var buffer = new Memory<byte>(new byte[8]);
+            var bufferSpan = buffer.Span;
+            BinaryPrimitives.WriteUInt32BigEndian(bufferSpan, 0xDEADBEEF);
+            BinaryPrimitives.WriteUInt32BigEndian(bufferSpan.Slice(4), 0xABCDEF);
 
-            var bufferRO = (ReadOnlySpan<byte>)buffer;
+            var bufferRO = (ReadOnlyMemory<byte>)buffer;
             Assert.True(header.ConsumeAndGet(ref bufferRO, out var headerData));
             
-            Assert.Equal(0xDEADBEEF, BinaryPrimitives.ReadUInt32BigEndian(headerData));
-            Assert.Equal(0xABCDEFu, BinaryPrimitives.ReadUInt32BigEndian(bufferRO));
+            Assert.Equal(0xDEADBEEF, BinaryPrimitives.ReadUInt32BigEndian(headerData.Span));
+            Assert.Equal(0xABCDEFu, BinaryPrimitives.ReadUInt32BigEndian(bufferRO.Span));
         }
         
         [Fact]
@@ -28,10 +29,10 @@ namespace ArcticFox.Tests
         {
             var header = new FixedSizeHeader(4);
 
-            var buffer = new Span<byte>(new byte[4]);
-            BinaryPrimitives.WriteUInt32BigEndian(buffer, 0xDEADBEEF);
+            var buffer = new Memory<byte>(new byte[4]);
+            BinaryPrimitives.WriteUInt32BigEndian(buffer.Span, 0xDEADBEEF);
             
-            var bufferRO = (ReadOnlySpan<byte>)buffer;
+            var bufferRO = (ReadOnlyMemory<byte>)buffer;
             
             var bufferRO_1 = bufferRO.Slice(0, 1);
             Assert.False(header.Consume(ref bufferRO_1));
@@ -42,7 +43,7 @@ namespace ArcticFox.Tests
             var bufferRO_3 = bufferRO.Slice(2, 2);
             Assert.True(header.ConsumeAndGet(ref bufferRO_3, out var headerData));
             
-            Assert.Equal(0xDEADBEEF, BinaryPrimitives.ReadUInt32BigEndian(headerData));
+            Assert.Equal(0xDEADBEEF, BinaryPrimitives.ReadUInt32BigEndian(headerData.Span));
         }
     }
 }
