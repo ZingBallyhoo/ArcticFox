@@ -51,7 +51,7 @@ namespace ArcticFox.Codec
         }
     }
 
-    public class CodecChain<TFrom, TTo> : SpanCodec<TFrom, TTo>
+    public class CodecChain<TFrom, TTo> : SpanCodec<TFrom, TTo>, IDisposable
     {
         private readonly CodecChain m_chain;
         
@@ -63,6 +63,11 @@ namespace ArcticFox.Codec
         public override void Input(ReadOnlyMemory<TFrom> input, ref object? state)
         {
             m_chain.Head<TFrom>().Input(input, ref state);
+        }
+
+        public void Dispose()
+        {
+            m_chain.Dispose();
         }
     }
 }

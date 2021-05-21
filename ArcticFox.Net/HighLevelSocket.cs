@@ -63,6 +63,8 @@ namespace ArcticFox.Net
         public async ValueTask DisposeAsync()
         {
             await m_netEventQueue.DisposeAsync();
+            m_netInputCodec?.Dispose();
+            m_preNetTransform?.Dispose();
             m_socket.Dispose();
         }
     }
