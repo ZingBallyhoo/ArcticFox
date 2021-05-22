@@ -12,10 +12,10 @@ namespace ArcticFox.Net.Sockets
             m_cancellationTokenSource = new CancellationTokenSource();
         }
 
-        protected override Task CloseSocket()
+        protected override ValueTask CloseSocket()
         {
             m_cancellationTokenSource.Cancel();
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public override void Dispose()

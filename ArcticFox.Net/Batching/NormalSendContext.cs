@@ -6,14 +6,14 @@ namespace ArcticFox.Net.Batching
 {
     public class NormalSendContext : ISendContext
     {
-        public Task AddMessage(SocketInterface socket, ReadOnlyMemory<byte> arr, int remainingAddCount)
+        public ValueTask AddMessage(SocketInterface socket, ReadOnlyMemory<byte> arr, int remainingAddCount)
         {
             return socket.SendBuffer(arr);
         }
 
-        public Task Flush(SocketInterface socket)
+        public ValueTask Flush(SocketInterface socket)
         {
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 }

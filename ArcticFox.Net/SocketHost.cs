@@ -143,7 +143,7 @@ namespace ArcticFox.Net
 
         public abstract HighLevelSocket CreateHighLevelSocket(SocketInterface socket);
 
-        public async Task<int> GetSocketCount()
+        public async ValueTask<int> GetSocketCount()
         {
             using (var sockets = await m_sockets.Get())
             {
@@ -151,15 +151,15 @@ namespace ArcticFox.Net
             }
         }
 
-        public async Task<IReadOnlyList<HighLevelSocket>> GetSockets()
+        public async ValueTask<IReadOnlyList<HighLevelSocket>> GetSockets()
         {
             using (var sockets = await m_sockets.Get())
             {
                 return sockets.m_value.ToArray();
             }
         }
-        
-        public async Task AddSocket(HighLevelSocket socket)
+
+        public async ValueTask AddSocket(HighLevelSocket socket)
         {
             using (var sockets = await m_sockets.Get())
             {

@@ -9,7 +9,7 @@ namespace ArcticFox.Net
 {
     public static class ClientSocketHostExtensions
     {
-        public static async Task<T> CreateClientWebSocket<T>(this SocketHost host, Uri uri, bool binaryMessages=true) where T : HighLevelSocket
+        public static async ValueTask<T> CreateClientWebSocket<T>(this SocketHost host, Uri uri, bool binaryMessages=true) where T : HighLevelSocket
         {
             var clientWebSocket = new ClientWebSocket();
             await clientWebSocket.ConnectAsync(uri, default);
@@ -20,7 +20,7 @@ namespace ArcticFox.Net
             return (T)hl;
         }
         
-        public static async Task<T> CreateClientTCPSocket<T>(this SocketHost host, IPEndPoint endPoint) where T : HighLevelSocket
+        public static async ValueTask<T> CreateClientTCPSocket<T>(this SocketHost host, IPEndPoint endPoint) where T : HighLevelSocket
         {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             await socket.ConnectAsync(endPoint);

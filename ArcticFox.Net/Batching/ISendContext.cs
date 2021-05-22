@@ -6,7 +6,7 @@ namespace ArcticFox.Net.Batching
 {
     public interface ISendContext
     {
-        Task AddMessage(SocketInterface socket, ReadOnlyMemory<byte> arr, int remainingAddCount);
-        Task Flush(SocketInterface socket);
+        ValueTask AddMessage(SocketInterface socket, ReadOnlyMemory<byte> arr, int remainingAddCount);
+        ValueTask Flush(SocketInterface socket);
     }
 }

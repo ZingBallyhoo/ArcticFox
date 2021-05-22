@@ -13,17 +13,17 @@ namespace ArcticFox.Net.Sockets
             m_socket = socket;
         }
         
-        public override async Task SendBuffer(ReadOnlyMemory<byte> memory)
+        public override async ValueTask SendBuffer(ReadOnlyMemory<byte> memory)
         {
             await m_socket.SendAsync(memory, SocketFlags.None);
         }
 
-        public override async Task<int> ReceiveBuffer(Memory<byte> buffer)
+        public override ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
         {
-            return await m_socket.ReceiveAsync(buffer, SocketFlags.None, m_cancellationTokenSource.Token);
+            return m_socket.ReceiveAsync(buffer, SocketFlags.None, m_cancellationTokenSource.Token);
         }
 
-        protected override async Task CloseSocket()
+        protected override async ValueTask CloseSocket()
         {
             await base.CloseSocket();
             await m_socket.DisconnectAsync(false);

@@ -11,18 +11,18 @@ namespace ArcticFox.Tests.Impls
     {
         public List<string> m_sentAsStrings = new List<string>();
         
-        public override Task SendBuffer(ReadOnlyMemory<byte> data)
+        public override ValueTask SendBuffer(ReadOnlyMemory<byte> data)
         {
             m_sentAsStrings.Add(Encoding.ASCII.GetString(data.Span));
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        public override Task<int> ReceiveBuffer(Memory<byte> buffer)
+        public override ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task CloseSocket()
+        protected override ValueTask CloseSocket()
         {
             throw new NotImplementedException();
         }

@@ -36,7 +36,7 @@ namespace ArcticFox.Net.Event
             }
         }
 
-        public async Task<int> FlushEventsToSocket(SocketInterface socket, ISendContext ctx)
+        public async ValueTask<int> FlushEventsToSocket(SocketInterface socket, ISendContext ctx)
         {
             if (socket.IsClosed()) return 0;
             
@@ -59,7 +59,7 @@ namespace ArcticFox.Net.Event
             }
         }
         
-        private async Task DisposePendingEvents()
+        private async ValueTask DisposePendingEvents()
         {
             using (var token = await m_eventQueue.Get())
             {

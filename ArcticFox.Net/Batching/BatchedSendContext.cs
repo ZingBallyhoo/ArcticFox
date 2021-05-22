@@ -18,7 +18,7 @@ namespace ArcticFox.Net.Batching
             m_sharedBufferOffset = 0;
         }
 
-        public async Task AddMessage(SocketInterface socket, ReadOnlyMemory<byte> arr, int remainingAddCount)
+        public async ValueTask AddMessage(SocketInterface socket, ReadOnlyMemory<byte> arr, int remainingAddCount)
         {
             var length = arr.Length;
             
@@ -65,7 +65,7 @@ namespace ArcticFox.Net.Batching
             }
         }
 
-        public async Task Flush(SocketInterface socket)
+        public async ValueTask Flush(SocketInterface socket)
         {
             if (m_sharedBufferOffset == 0) return;
             await socket.SendBuffer(m_sharedBuffer, 0, m_sharedBufferOffset);

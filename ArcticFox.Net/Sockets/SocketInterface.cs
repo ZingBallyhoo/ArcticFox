@@ -7,14 +7,14 @@ namespace ArcticFox.Net.Sockets
     {
         private bool m_closed;
         
-        public abstract Task SendBuffer(ReadOnlyMemory<byte> data);
+        public abstract ValueTask SendBuffer(ReadOnlyMemory<byte> data);
 
-        public Task SendBuffer(ReadOnlyMemory<byte> buffer, int offset, int length)
+        public ValueTask SendBuffer(ReadOnlyMemory<byte> buffer, int offset, int length)
         {
             return SendBuffer(buffer.Slice(offset, length));
         }
 
-        public abstract Task<int> ReceiveBuffer(Memory<byte> buffer);
+        public abstract ValueTask<int> ReceiveBuffer(Memory<byte> buffer);
 
         public bool IsClosed() => m_closed;
 
@@ -23,9 +23,9 @@ namespace ArcticFox.Net.Sockets
             m_closed = true;
         }
         
-        protected abstract Task CloseSocket();
+        protected abstract ValueTask CloseSocket();
 
-        public async Task TryCloseSocket()
+        public async ValueTask TryCloseSocket()
         {
             try
             {
