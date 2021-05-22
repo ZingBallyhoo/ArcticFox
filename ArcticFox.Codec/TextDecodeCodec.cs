@@ -15,7 +15,7 @@ namespace ArcticFox.Codec
             m_decoder = encoding.GetDecoder();
         }
         
-        public override void Input(ReadOnlyMemory<byte> buffer, ref object? state)
+        public override void Input(ReadOnlySpan<byte> buffer, ref object? state)
         {
             if (buffer.Length == 0)
             {
@@ -24,10 +24,10 @@ namespace ArcticFox.Codec
             }
 
             var maxChars = m_encoding.GetMaxCharCount(buffer.Length);
-            using var bufferOwner = MemoryOwner<char>.Allocate(maxChars);
+            using var bufferOwner = SpanOwner<char>.Allocate(maxChars);
             var charSpan = bufferOwner.Span;
             
-            m_decoder.Convert(buffer.Span, charSpan, true, out var bytesUsed, out var charCount, out var completed);
+            m_decoder.Convert(buffer, charSpan, true, out var bytesUsed, out var charCount, out var completed);
 
             if (!completed)
             {
@@ -37,10 +37,9 @@ namespace ArcticFox.Codec
                 Abort();
                 return;
             }
-
-            var charMemory = bufferOwner.Memory;
-            charMemory = charMemory.Slice(0, charCount);
-            CodecOutput(charMemory, ref state);
+            
+            charSpan = charSpan.Slice(0, charCount);
+            CodecOutput(charSpan, ref state);
         }
     }
 }

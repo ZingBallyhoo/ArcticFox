@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using ArcticFox.Codec;
 
 namespace ArcticFox.Net.Event
@@ -8,7 +7,7 @@ namespace ArcticFox.Net.Event
     {
         public static NetEventFactory s_instance = new NetEventFactory();
         
-        public void Input(ReadOnlyMemory<byte> input, ref object? state)
+        public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
             var netEvent = NetEvent.Create(input);
             state = netEvent;

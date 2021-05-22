@@ -21,10 +21,10 @@ namespace ArcticFox.Net
         
         public static ValueTask Broadcast<T>(this T bc, string msg) where T: IBroadcaster
         {
-            return Broadcast(bc, msg.AsMemory());
+            return Broadcast(bc, msg.AsSpan());
         }
         
-        public static ValueTask Broadcast<T>(this T bc, ReadOnlyMemory<char> msg) where T: IBroadcaster
+        public static ValueTask Broadcast<T>(this T bc, ReadOnlySpan<char> msg) where T: IBroadcaster
         {
             object? ev = null;
             s_zeroTerminatedStringCodec.Value.Input(msg, ref ev);
@@ -33,7 +33,7 @@ namespace ArcticFox.Net
             return bc.BroadcastEventOwningCreation(netEv);
         }
 
-        public static ValueTask Broadcast<T>(this T bc, ReadOnlyMemory<byte> msg) where T: IBroadcaster
+        public static ValueTask Broadcast<T>(this T bc, ReadOnlySpan<byte> msg) where T: IBroadcaster
         {
             object? ev = null;
             NetEventFactory.s_instance.Input(msg, ref ev);

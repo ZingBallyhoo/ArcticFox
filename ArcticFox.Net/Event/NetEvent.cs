@@ -7,10 +7,10 @@ namespace ArcticFox.Net.Event
     {
         private MemoryOwner<byte> m_memoryOwner;
         
-        private NetEvent(ReadOnlyMemory<byte> data)
+        private NetEvent(ReadOnlySpan<byte> data)
         {
             m_memoryOwner = MemoryOwner<byte>.Allocate(data.Length);
-            data.CopyTo(m_memoryOwner.Memory);
+            data.CopyTo(m_memoryOwner.Span);
         }
 
         public ReadOnlyMemory<byte> GetMemory()
@@ -18,7 +18,7 @@ namespace ArcticFox.Net.Event
             return m_memoryOwner.Memory;
         }
 
-        public static NetEvent Create(ReadOnlyMemory<byte> data)
+        public static NetEvent Create(ReadOnlySpan<byte> data)
         {
             // todo: i used to pool these, is it even a good idea?
             return new NetEvent(data);

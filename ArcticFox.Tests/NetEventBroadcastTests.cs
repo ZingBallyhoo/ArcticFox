@@ -22,7 +22,7 @@ namespace ArcticFox.Tests
         
         public ValueTask FakeSendEvent(string text)
         {
-            return TempBroadcasterExtensions.Broadcast(this, text.AsMemory());
+            return TempBroadcasterExtensions.Broadcast(this, text.AsSpan());
         }
         
         public ValueTask BroadcastEvent(NetEvent ev)

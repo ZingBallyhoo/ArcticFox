@@ -16,7 +16,7 @@ namespace ArcticFox.Tests.Impls
             m_aborted = false;
         }
 
-        public void Input(ReadOnlyMemory<char> input, ref object? state)
+        public void Input(ReadOnlySpan<char> input, ref object? state)
         {
             m_received.Add(input.ToString());
         }

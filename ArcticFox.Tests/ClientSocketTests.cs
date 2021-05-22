@@ -16,8 +16,9 @@ namespace ArcticFox.Tests
             m_netInputCodec = new CodecChain().AddCodec(this);
         }
 
-        public void Input(ReadOnlyMemory<byte> input, ref object? state)
+        public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
+            // its ok to pass the span, method runs synchronously
             TempBroadcasterExtensions.Broadcast(this, input).GetAwaiter().GetResult();
         }
 

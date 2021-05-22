@@ -17,9 +17,9 @@ namespace ArcticFox.Tests.Impls
             m_aborted = false;
         }
 
-        public void Input(ReadOnlyMemory<byte> input, ref object? state)
+        public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
-            m_outputAsStrings.Add(Encoding.ASCII.GetString(input.Span));
+            m_outputAsStrings.Add(Encoding.ASCII.GetString(input));
         }
 
         public void AssertOutput(params string[] expected)

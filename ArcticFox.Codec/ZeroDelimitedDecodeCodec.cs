@@ -12,13 +12,13 @@ namespace ArcticFox.Codec
 
         public byte m_delimitByte = 0;
 
-        public override void Input(ReadOnlyMemory<byte> input, ref object? state)
+        public override void Input(ReadOnlySpan<byte> input, ref object? state)
         {
             var packetOffset = 0;
             while (packetOffset < input.Length)
             {
                 var packetToEndSpan = input.Slice(packetOffset);
-                var idxOf0 = packetToEndSpan.Span.IndexOf(m_delimitByte);
+                var idxOf0 = packetToEndSpan.IndexOf(m_delimitByte);
 
                 int packetSize;
                 if (idxOf0 == -1) packetSize = packetToEndSpan.Length;
@@ -39,12 +39,12 @@ namespace ArcticFox.Codec
                 }
                 
                 if (!GrowBufferBy(packetSize)) break;
-                packetSpan.CopyTo(m_recvBuffer.Memory.Slice(m_recvBufferPos));
+                packetSpan.CopyTo(m_recvBuffer.Span.Slice(m_recvBufferPos));
                 
                 m_recvBufferPos += packetSize;
                 if (idxOf0 != -1)
                 {
-                    CodecOutput(m_recvBuffer.Memory.Slice(0, m_recvBufferPos), ref state);
+                    CodecOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos), ref state);
                     m_recvBufferPos = 0;
                 }
             }

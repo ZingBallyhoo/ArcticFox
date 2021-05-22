@@ -40,7 +40,7 @@ namespace ArcticFox.Net
             }
         }
         
-        public virtual void NetworkInput(ReadOnlyMemory<byte> data)
+        public virtual void NetworkInput(ReadOnlySpan<byte> data)
         {
             var inputCodec = m_netInputCodec;
             if (inputCodec == null) throw new NullReferenceException("No input codec");
@@ -83,7 +83,7 @@ namespace ArcticFox.Net
                 await m_netEventQueue.BroadcastEvent(ev);
                 return;
             }
-            transform.Input2(ev.GetMemory(), m_netEventQueue);
+            transform.Input2(ev.GetMemory().Span, m_netEventQueue);
         }
 
         public async ValueTask DisposeAsync()

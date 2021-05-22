@@ -8,11 +8,10 @@ namespace ArcticFox.Codec
     {
         public static readonly ZeroDelimitedEncodeCodec s_instance = new ZeroDelimitedEncodeCodec();
         
-        public override void Input(ReadOnlyMemory<char> input, ref object? state)
+        public override void Input(ReadOnlySpan<char> input, ref object? state)
         {
-            var inputSpan = input.Span;
-            var countOf0 = inputSpan.Count('\0');
-            if (inputSpan[^1] == '\0')
+            var countOf0 = input.Count('\0');
+            if (input[^1] == '\0')
             {
                 if (countOf0 != 1)
                 {
@@ -32,10 +31,10 @@ namespace ArcticFox.Codec
                 return;
             }
             
-            using var owner = MemoryOwner<char>.Allocate(input.Length + 1);
-            inputSpan.CopyTo(owner.Span);
+            using var owner = SpanOwner<char>.Allocate(input.Length + 1);
+            input.CopyTo(owner.Span);
             owner.Span[input.Length] = '\0';
-            CodecOutput(owner.Memory, ref state);
+            CodecOutput(owner.Span, ref state);
         }
     }
 }
