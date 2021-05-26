@@ -86,12 +86,11 @@ namespace ArcticFox.Net
             transform.Input2(ev.GetMemory().Span, m_netEventQueue);
         }
 
-        public async ValueTask DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {
             await m_netEventQueue.DisposeAsync();
             m_netInputCodec?.Dispose();
             SetPreNetTransform(null);
-            m_socket.Dispose();
         }
     }
 }

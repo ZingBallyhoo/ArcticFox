@@ -9,21 +9,18 @@ using Xunit;
 
 namespace ArcticFox.Tests.SmartFoxServer
 {
-    public class SmartFoxSocketBase : HighLevelSocket
+    public class TestSFSSocketHost : SocketHost
     {
-        protected readonly SmartFoxManager m_manager;
+        private readonly SmartFoxManager m_mgr;
         
-        public SmartFoxSocketBase(SocketInterface socket, SmartFoxManager manager) : base(socket)
+        public TestSFSSocketHost(SmartFoxManager manager)
         {
-            m_manager = manager;
+            m_mgr = manager;
         }
-
-        public async ValueTask<User> CreateUser(string zoneName, string name)
+        
+        public override HighLevelSocket CreateHighLevelSocket(SocketInterface socket)
         {
-            var zone = await m_manager.GetZone(zoneName);
-            if (zone == null) throw new ArgumentException($"{nameof(CreateUser)}: zone {zoneName} doesn't exist");
-            var user = await zone.CreateUser(name, this);
-            return user;
+            return new SmartFoxSocketBase(socket, m_mgr);
         }
     }
 
@@ -207,6 +204,34 @@ namespace ArcticFox.Tests.SmartFoxServer
             {
                 await mgr.CreateUser("bob", null, "zone2");
             });
+        }
+        
+        [Fact]
+        public async Task SocketShutdownLogsOutUser()
+        {
+            const string userName = "bob";
+            
+            var mgr = CreateMgr();
+            using var zone = await CreateZone(mgr, "zone");
+            var room = await zone.CreateRoom(new RoomDescription
+            {
+                m_name = "the room"
+            });
+            
+            await using var host = new TestSFSSocketHost(mgr);
+            await host.StartAsync();
+
+            var socket = (SmartFoxSocketBase)host.CreateHighLevelSocket(new NullSocketInterface());
+            await host.AddSocket(socket);
+            var user = await socket.CreateUser("zone", userName);
+            Assert.NotNull(user);
+            
+            await room.AddUser(user);
+            
+            user.m_socket!.Close();
+            await Task.Delay(50);
+
+            Assert.Null(await zone.GetUser(userName));
         }
     }
 }

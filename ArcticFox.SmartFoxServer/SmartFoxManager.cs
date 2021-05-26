@@ -37,6 +37,19 @@ namespace ArcticFox.SmartFoxServer
             var user = await zone.CreateUser(name, socket);
             return user;
         }
+
+        public async ValueTask LogoutSocket(HighLevelSocket socket)
+        {
+            using var token = await m_zones.Get();
+            var zones = token.m_value;
+
+            foreach (var zone in zones.Values)
+            {
+                var user = await zone.GetUser(socket);
+                if (user == null) continue;
+                await zone.RemoveUser(user);
+            }
+        }
         
         public async ValueTask<Zone> CreateZone(string name)
         {

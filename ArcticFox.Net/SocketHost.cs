@@ -70,10 +70,24 @@ namespace ArcticFox.Net
                 {
                     break;
                 }
+
+                try
+                {
+                    await a.DisposeAsync();
+                } catch (Exception e)
+                {
+                    // todo: log
+                }
                 try
                 {
                     await a.m_socket.TryCloseSocket();
-                    await a.DisposeAsync();
+                } catch (Exception e)
+                {
+                    // todo: log
+                }
+                try
+                {
+                    a.m_socket.Dispose();
                 } catch (Exception e)
                 {
                     // todo: log

@@ -70,6 +70,7 @@ namespace ArcticFox.SmartFoxServer
             using (Computed.Invalidate())
             {
                 GetByName(user.m_name).Ignore();
+                if (user.m_socket != null) GetBySocket(user.m_socket).Ignore();
             }
         }
 
@@ -82,6 +83,7 @@ namespace ArcticFox.SmartFoxServer
             using (Computed.Invalidate())
             {
                 GetByName(user.m_name).Ignore();
+                if (user.m_socket != null) GetBySocket(user.m_socket).Ignore();
             }
         }
         
@@ -89,6 +91,13 @@ namespace ArcticFox.SmartFoxServer
         public virtual Task<User?> GetByName(string name)
         {
             m_usersByName.TryGetValue(name, out var user);
+            return Task.FromResult(user);
+        }
+        
+        [ComputeMethod]
+        public virtual Task<User?> GetBySocket(HighLevelSocket socket)
+        {
+            m_usersBySocket.TryGetValue(socket, out var user);
             return Task.FromResult(user);
         }
     }
@@ -185,6 +194,13 @@ namespace ArcticFox.SmartFoxServer
         {
             using var rooms = await m_users.Get();
             return await rooms.m_value.GetByName(name);
+        }
+        
+        [ComputeMethod]
+        public virtual async ValueTask<User?> GetUser(HighLevelSocket socket)
+        {
+            using var rooms = await m_users.Get();
+            return await rooms.m_value.GetBySocket(socket);
         }
         
         [ComputeMethod]

@@ -46,7 +46,7 @@ namespace ArcticFox.SmartFoxServer
         
         private async ValueTask<bool> CreatorIsGone()
         {
-            if (m_description.m_creator == null) return true;
+            if (m_description.m_creator == null) return true; // we will still check user count...
             var user = await m_zone.GetUser(m_description.m_creator.m_name);
             return user == null;
         }
