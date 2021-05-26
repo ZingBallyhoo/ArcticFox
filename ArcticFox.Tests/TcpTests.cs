@@ -58,11 +58,11 @@ namespace ArcticFox.Tests
         [Theory]
         [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)] [InlineData(5)]
         [InlineData(6)] [InlineData(7)] [InlineData(8)] [InlineData(9)] [InlineData(10)]
-        public async Task TestToSmallRecvBuffer(int size)
+        public async Task TestTooSmallRecvBuffer(int size)
         {
             var endPoint = IPEndPoint.Parse("127.0.0.1:9004");
             
-            await using  var host = new TestSocketHost();
+            await using var host = new TestSocketHost();
             host.m_recvBufferSize = size;
             await host.StartAsync();
             
