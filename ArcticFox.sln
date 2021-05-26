@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox.Net", "ArcticFox.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox.Perf", "ArcticFox.Perf\ArcticFox.Perf.csproj", "{22BB382F-CC6B-44AB-AE04-EA962BF64F40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox.SmartFoxServer", "ArcticFox.SmartFoxServer\ArcticFox.SmartFoxServer.csproj", "{D13F568D-CDC3-499D-80FD-7E99351105EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcticFox.Tests.SmartFoxServer", "ArcticFox.Tests.SmartFoxServer\ArcticFox.Tests.SmartFoxServer.csproj", "{718AF962-DBD6-45B2-93C2-28177FDC626A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{22BB382F-CC6B-44AB-AE04-EA962BF64F40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22BB382F-CC6B-44AB-AE04-EA962BF64F40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22BB382F-CC6B-44AB-AE04-EA962BF64F40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D13F568D-CDC3-499D-80FD-7E99351105EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D13F568D-CDC3-499D-80FD-7E99351105EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D13F568D-CDC3-499D-80FD-7E99351105EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D13F568D-CDC3-499D-80FD-7E99351105EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{718AF962-DBD6-45B2-93C2-28177FDC626A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{718AF962-DBD6-45B2-93C2-28177FDC626A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{718AF962-DBD6-45B2-93C2-28177FDC626A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{718AF962-DBD6-45B2-93C2-28177FDC626A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
