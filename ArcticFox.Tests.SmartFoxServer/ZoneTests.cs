@@ -9,21 +9,21 @@ using Xunit;
 
 namespace ArcticFox.Tests.SmartFoxServer
 {
-    public class Mgr
+    public class SmartFoxSocketBase : HighLevelSocket
     {
-        public ServiceProvider m_provider;
+        protected readonly SmartFoxManager m_manager;
         
-        public Zone CreateZone()
+        public SmartFoxSocketBase(SocketInterface socket, SmartFoxManager manager) : base(socket)
         {
-            var scope = m_provider.CreateScope();
-            var definition = scope.ServiceProvider.GetRequiredService<ZoneDefinition>();
-            definition.m_name = "david";
-            definition.m_scope = scope;
-            var zone = scope.ServiceProvider.GetRequiredService<Zone>();
-            
-            Assert.Equal(zone.m_name, definition.m_name);
-            
-            return zone;
+            m_manager = manager;
+        }
+
+        public async ValueTask<User> CreateUser(string zoneName, string name)
+        {
+            var zone = await m_manager.GetZone(zoneName);
+            if (zone == null) throw new ArgumentException($"{nameof(CreateUser)}: zone {zoneName} doesn't exist");
+            var user = await zone.CreateUser(name, this);
+            return user;
         }
     }
 
@@ -53,17 +53,22 @@ namespace ArcticFox.Tests.SmartFoxServer
     
     public class ZoneTests
     {
-        private Mgr CreateMgr()
+        private SmartFoxManager CreateMgr()
         {
             var services = new ServiceCollection();
             services.UseRegisterAttributeScanner().RegisterFrom(typeof(Zone).Assembly);
             services.AddSingleton<ISystemHandler, NullSystemHandler>();
 
-            var mgr = new Mgr
-            {
-                m_provider = services.BuildServiceProvider()
-            };
+            var provider = services.BuildServiceProvider();
+            var mgr = provider.GetRequiredService<SmartFoxManager>();
             return mgr;
+        }
+
+        public async ValueTask<Zone> CreateZone(SmartFoxManager mgr, string name)
+        {
+            var zone = await mgr.CreateZone(name);
+            Assert.Equal(zone.m_name, name);
+            return zone;
         }
         
         [Fact]
@@ -71,7 +76,7 @@ namespace ArcticFox.Tests.SmartFoxServer
         {
             var mgr = CreateMgr();
             
-            using var zone1 = mgr.CreateZone();
+            using var zone1 = await CreateZone(mgr, "zone");
             Assert.NotNull(zone1);
             var room1 = await zone1.CreateRoom("room1");
             Assert.Same(room1.m_zone, zone1);
@@ -81,7 +86,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             Assert.NotEqual(room1.m_id, room2.m_id);
             await Assert.ThrowsAsync<ArgumentException>(async () => await zone1.CreateRoom("room2"));
 
-            using var zone2 = mgr.CreateZone();
+            using var zone2 = await CreateZone(mgr, "zone2");
             Assert.NotNull(zone2);
             Assert.NotSame(zone2, zone1);
             var userA = await zone2.CreateUser("a", null);
@@ -99,7 +104,7 @@ namespace ArcticFox.Tests.SmartFoxServer
         public async Task TestTempRoom()
         {
             var mgr = CreateMgr();
-            using var zone = mgr.CreateZone();
+            using var zone = await CreateZone(mgr, "zone");
 
             const string roomName = "user_house";
             
@@ -123,7 +128,7 @@ namespace ArcticFox.Tests.SmartFoxServer
         public async Task TestTempRoomUntilEmpty()
         {
             var mgr = CreateMgr();
-            using var zone = mgr.CreateZone();
+            using var zone = await CreateZone(mgr, "zone");
 
             const string roomName = "user1_house";
             const string persistentRoomName = "hub";
@@ -175,6 +180,33 @@ namespace ArcticFox.Tests.SmartFoxServer
             Assert.Same(persistentRoom, persistentRoomGet);
             
             await Assert.ThrowsAsync<Exception>(async () => await persistentRoom.AddUser(user2));
+        }
+
+        [Fact]
+        public async Task CantCreateSameZoneTwice()
+        {
+            var mgr = CreateMgr();
+            using var zone = await CreateZone(mgr, "zone");
+
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            {
+                using var zoneAgain = await mgr.CreateZone("zone");
+            });
+        }
+        
+        [Fact]
+        public async Task CantLogIntoTwoZones()
+        {
+            var mgr = CreateMgr();
+            using var zone1 = await CreateZone(mgr, "zone");
+            using var zone2 = await CreateZone(mgr, "zone2");
+
+            await mgr.CreateUser("bob", null, "zone");
+
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            {
+                await mgr.CreateUser("bob", null, "zone2");
+            });
         }
     }
 }
