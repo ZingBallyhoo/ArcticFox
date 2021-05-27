@@ -90,6 +90,7 @@ namespace ArcticFox.Net
         {
             await m_netEventQueue.DisposeAsync();
             m_netInputCodec?.Dispose();
+            m_netInputCodec = null;
             SetPreNetTransform(null);
         }
     }

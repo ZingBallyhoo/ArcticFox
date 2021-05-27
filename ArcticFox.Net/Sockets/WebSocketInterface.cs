@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace ArcticFox.Net.Sockets
 {
     // todo: named this way due to conflict...
-    public class WebSocketInterface : CancellingSocket
+    public class WebSocketInterface : SocketInterface
     {
         private readonly WebSocket m_webSocket;
         private readonly bool m_binaryMessages;
@@ -35,7 +35,6 @@ namespace ArcticFox.Net.Sockets
 
         protected override async ValueTask CloseSocket()
         {
-            await base.CloseSocket();
             await m_webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, default);
         }
 

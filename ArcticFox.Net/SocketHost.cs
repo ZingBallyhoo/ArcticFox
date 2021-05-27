@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using ArcticFox.Net.Batching;
 using ArcticFox.Net.Sockets;
@@ -15,7 +14,6 @@ namespace ArcticFox.Net
     {
         private readonly CancellationTokenSource m_cancellationTokenSource = new CancellationTokenSource();
         private readonly TaskCompletionSource m_taskCompletionSource = new TaskCompletionSource();
-        private readonly Channel<HighLevelSocket> m_disposeQueue = Channel.CreateUnbounded<HighLevelSocket>();
 
         public bool IsRunning() => !m_cancellationTokenSource.IsCancellationRequested;
         public CancellationToken GetCancellationToken() => m_cancellationTokenSource.Token;
@@ -27,17 +25,13 @@ namespace ArcticFox.Net
 
         public int m_recvBufferSize = 1024;
         
-        public virtual Task StartAsync(CancellationToken cancellationToken=default)
+        public virtual ValueTask StartAsync(CancellationToken cancellationToken=default)
         {
             Task.Factory.StartNew(async () =>
             {
                 await UpdateThread(GetCancellationToken());
             }, TaskCreationOptions.LongRunning);
-            Task.Factory.StartNew(async () =>
-            {
-                await DisposeThread();
-            }, TaskCreationOptions.LongRunning);
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
         
         public Task StopAsync(CancellationToken cancellationToken=default)
@@ -57,49 +51,11 @@ namespace ArcticFox.Net
                 return new NormalSendContext();
             }
         }
-
-        private async Task DisposeThread()
-        {
-            while (true)
-            {
-                HighLevelSocket a;
-                try
-                {
-                    a = await m_disposeQueue.Reader.ReadAsync();
-                } catch (ChannelClosedException)
-                {
-                    break;
-                }
-
-                try
-                {
-                    await a.DisposeAsync();
-                } catch (Exception e)
-                {
-                    // todo: log
-                }
-                try
-                {
-                    await a.m_socket.TryCloseSocket();
-                } catch (Exception e)
-                {
-                    // todo: log
-                }
-                try
-                {
-                    a.m_socket.Dispose();
-                } catch (Exception e)
-                {
-                    // todo: log
-                }
-            }
-        }
         
         public async Task UpdateThread(CancellationToken cancellationToken)
         {
             var ctx = CreateSendContext();
-
-            var toRemove = new List<HighLevelSocket>();
+            
             var sw = new Stopwatch();
 
             while (!cancellationToken.IsCancellationRequested)
@@ -114,20 +70,10 @@ namespace ArcticFox.Net
                     {
                         foreach (var socket in sockets.m_value)
                         {
-                            if (socket.IsClosed())
-                            {
-                                toRemove.Add(socket);
-                                continue;
-                            }
+                            if (socket.IsClosed()) continue;
                             count += await socket.HandlePendingSendEvents(ctx);
                         }
-                        foreach (var impl in toRemove)
-                        {
-                            sockets.m_value.Remove(impl);
-                            await m_disposeQueue.Writer.WriteAsync(impl);
-                        }
                     }
-                    toRemove.Clear();
                     
                     sw.Stop();
                     if (count > 0) Log.Error("Send Count: {Count} {Time}", count, sw.Elapsed.TotalMilliseconds);
@@ -141,17 +87,29 @@ namespace ArcticFox.Net
                 }
                 await Task.Delay(16-Math.Min(16, elapsed)); // todo: loop accumulation
             }
-
+            
             using (var sockets = await m_sockets.Get())
             {
                 foreach (var socket in sockets.m_value)
                 {
-                    await m_disposeQueue.Writer.WriteAsync(socket);
+                    socket.Close();
                 }
-                sockets.m_value.Clear();
             }
-            m_disposeQueue.Writer.TryComplete();
-            await m_disposeQueue.Reader.Completion;
+
+            var shutdownStart = DateTime.UtcNow;
+            while (true)
+            {
+                using var sockets = await m_sockets.Get();
+                if (sockets.m_value.Count == 0) break;
+
+                if (DateTime.UtcNow - shutdownStart > TimeSpan.FromSeconds(10))
+                {
+                    m_taskCompletionSource.SetException(new Exception($"SocketHost shutdown timeout. {sockets.m_value.Count} sockets remain"));
+                    return;
+                }
+                
+                await Task.Delay(2);
+            }
             m_taskCompletionSource.SetResult();
         }
 
@@ -196,6 +154,7 @@ namespace ArcticFox.Net
                     var count = await socket.ReceiveBuffer(receiveMemory);
                     if (count == 0) break;
                     hl.NetworkInput(new ReadOnlySpan<byte>(receiveBuffer, 0, count));
+                    await hl.m_taskQueue.ConsumeAll();
                     await hl.HandlePendingSendEvents(ctx);
                 }
             } catch (Exception e)
@@ -205,6 +164,38 @@ namespace ArcticFox.Net
             } finally
             {
                 socket.Close();
+                hl.m_taskQueue.Complete();
+                await DestroySocket(hl);
+
+                using (var sockets = await m_sockets.Get())
+                {
+                    sockets.m_value.Remove(hl);
+                }
+            }
+        }
+
+        private async ValueTask DestroySocket(HighLevelSocket socket)
+        {
+            try
+            {
+                await socket.DisposeAsync();
+            } catch (Exception e)
+            {
+                // todo: log
+            }
+            try
+            {
+                await socket.m_socket.TryCloseSocket();
+            } catch (Exception e)
+            {
+                // todo: log
+            }
+            try
+            {
+                socket.m_socket.Dispose();
+            } catch (Exception e)
+            {
+                // todo: log
             }
         }
 

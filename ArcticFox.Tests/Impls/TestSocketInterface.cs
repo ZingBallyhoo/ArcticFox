@@ -17,9 +17,10 @@ namespace ArcticFox.Tests.Impls
             return ValueTask.CompletedTask;
         }
 
-        public override ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
+        public override async ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
         {
-            throw new NotImplementedException();
+            await Task.Delay(-1, m_cancellationTokenSource.Token);
+            return 0; // unreachable
         }
 
         protected override ValueTask CloseSocket()

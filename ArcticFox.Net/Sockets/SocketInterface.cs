@@ -1,11 +1,18 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ArcticFox.Net.Sockets
 {
     public abstract class SocketInterface : IDisposable
     {
+        public readonly CancellationTokenSource m_cancellationTokenSource;
         private bool m_closed;
+
+        public SocketInterface()
+        {
+            m_cancellationTokenSource = new CancellationTokenSource();
+        }
         
         public abstract ValueTask SendBuffer(ReadOnlyMemory<byte> data);
 
@@ -21,6 +28,7 @@ namespace ArcticFox.Net.Sockets
         public void Close()
         {
             m_closed = true;
+            m_cancellationTokenSource.Cancel();
         }
         
         protected abstract ValueTask CloseSocket();
@@ -38,6 +46,7 @@ namespace ArcticFox.Net.Sockets
 
         public virtual void Dispose()
         {
+            m_cancellationTokenSource.Dispose();
         }
     }
 }

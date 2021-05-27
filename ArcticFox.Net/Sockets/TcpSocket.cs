@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ArcticFox.Net.Sockets
 {
-    public class TcpSocket : CancellingSocket
+    public class TcpSocket : SocketInterface
     {
         public readonly Socket m_socket;
 
@@ -25,7 +25,6 @@ namespace ArcticFox.Net.Sockets
 
         protected override async ValueTask CloseSocket()
         {
-            await base.CloseSocket();
             await m_socket.DisconnectAsync(false);
             m_socket.Close();
         }

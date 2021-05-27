@@ -31,9 +31,10 @@ namespace ArcticFox.Tests.SmartFoxServer
             throw new NotImplementedException();
         }
 
-        public override ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
+        public override async ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
         {
-            throw new NotImplementedException();
+            await Task.Delay(-1, m_cancellationTokenSource.Token);
+            return 0; // unreachable
         }
 
         protected override ValueTask CloseSocket()
@@ -229,7 +230,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             await room.AddUser(user);
             
             user.m_socket!.Close();
-            await Task.Delay(50);
+            await Task.Delay(200);
 
             Assert.Null(await zone.GetUser(userName));
         }

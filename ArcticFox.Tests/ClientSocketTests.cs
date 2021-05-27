@@ -70,6 +70,12 @@ namespace ArcticFox.Tests
             await Task.Delay(50);
             Assert.Equal(1, await serverHost.GetSocketCount());
             Assert.Equal(new []{"Hello Echo Bois"}, socket.m_received);
+            
+            // sanity, cts doesn't break
+            socket.Close();
+            socket.Close();
+            socket.Close();
+            socket.Close();
         }
     }
 }

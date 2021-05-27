@@ -15,7 +15,7 @@ namespace ArcticFox.SmartFoxServer
 
         public ValueTask<User> CreateUser(string zoneName, string name)
         {
-            return m_manager.CreateUser(zoneName, this, name);
+            return m_manager.CreateUser(name, this, zoneName);
         }
 
         public override async ValueTask DisposeAsync()

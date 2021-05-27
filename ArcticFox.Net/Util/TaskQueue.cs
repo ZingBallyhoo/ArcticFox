@@ -1,42 +1,34 @@
 using System;
-using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace ArcticFox.Net.Util
 {
     public class TaskQueue
     {
-        private readonly SemaphoreSlim m_sema;
+        private Channel<Func<ValueTask>> m_channel;
         
         public TaskQueue()
         {
-            m_sema = new SemaphoreSlim(1, 1);
+            m_channel = Channel.CreateUnbounded<Func<ValueTask>>();
         }
 
-        public async Task<T> Enqueue<T>(Func<Task<T>> taskGenerator)
+        public ValueTask Enqueue(Func<ValueTask> taskGenerator)
         {
-            await m_sema.WaitAsync();
-            try
-            {
-                return await taskGenerator();
-            }
-            finally
-            {
-                m_sema.Release();
-            }
+            return m_channel.Writer.WriteAsync(taskGenerator);
         }
         
-        public async Task Enqueue(Func<Task> taskGenerator)
+        public async ValueTask ConsumeAll()
         {
-            await m_sema.WaitAsync();
-            try
+            while (m_channel.Reader.TryRead(out var taskFactory))
             {
-                await taskGenerator();
+                await taskFactory();
             }
-            finally
-            {
-                m_sema.Release();
-            }
+        }
+
+        public void Complete()
+        {
+            m_channel.Writer.TryComplete();
         }
     }
 }
