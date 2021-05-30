@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Util;
+using Castle.DynamicProxy.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
 
@@ -34,6 +35,8 @@ namespace ArcticFox.SmartFoxServer
         
         public readonly Func<NetEvent, User, ValueTask> m_userExcludeFilter;
         
+        private object? m_data;
+
         private bool m_canJoin = true;
 
         public Room(RoomDescription desc, Zone zone, ISystemHandler systemHandler)
@@ -142,6 +145,21 @@ namespace ArcticFox.SmartFoxServer
             {
                 await user.Value.BroadcastEvent(ev);
             }
+        }
+        
+        public void SetData(object? data)
+        {
+            m_data = data;
+        }
+
+        public T GetData<T>()
+        {
+            var data = m_data;
+            if (!typeof(T).IsNullableType() && data == null) // todo: checking IsNullableType every time...
+            {
+                throw new NullReferenceException(nameof(m_data));
+            }
+            return (T)data!;
         }
     }
 }
