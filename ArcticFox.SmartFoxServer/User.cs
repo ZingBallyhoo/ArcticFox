@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ArcticFox.Net;
@@ -73,6 +74,20 @@ namespace ArcticFox.SmartFoxServer
         {
             using var rooms = await m_rooms.Get();
             rooms.m_value.RemoveRoom(room);
+        }
+
+        public async ValueTask<Room> GetPrimaryRoom()
+        {
+            using var rooms = await m_rooms.Get();
+            if (rooms.m_value.m_roomsByName.Count != 1) throw new InvalidDataException($"{nameof(GetPrimaryRoom)}: in {rooms.m_value.m_roomsByName.Count} rooms");
+            return rooms.m_value.m_roomsByName.Values.First();
+        }
+        
+        public async ValueTask<Room?> GetPrimaryRoomOrNull()
+        {
+            using var rooms = await m_rooms.Get();
+            if (rooms.m_value.m_roomsByName.Count != 1) return null;
+            return rooms.m_value.m_roomsByName.Values.First();
         }
 
         public async ValueTask Shutdown()
