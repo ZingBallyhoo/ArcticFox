@@ -16,9 +16,9 @@ namespace ArcticFox.Net.Util
 
         public ValueTask<AsyncLockToken<T>> Get()
         {
-            var waitTask = m_sema.WaitAsync();
-            if (waitTask.IsCompleted) return new ValueTask<AsyncLockToken<T>>(m_token);
-            return new ValueTask<AsyncLockToken<T>>(GetAwaited(waitTask)); // allocating path
+            var success = m_sema.Wait(0);
+            if (success) return new ValueTask<AsyncLockToken<T>>(m_token);
+            return new ValueTask<AsyncLockToken<T>>(GetAwaited()); // allocating path
         }
         
         public AsyncLockToken<T>? GetNoWait()
@@ -34,9 +34,9 @@ namespace ArcticFox.Net.Util
             return m_token;
         }
 
-        private async Task<AsyncLockToken<T>> GetAwaited(Task waitTask)
+        private async Task<AsyncLockToken<T>> GetAwaited()
         {
-            await waitTask;
+            await m_sema.WaitAsync();
             return m_token;
         }
     }
