@@ -33,16 +33,16 @@ namespace ArcticFox.Perf
         }
 
         [Benchmark]
-        public async Task Filtered()
+        public ValueTask Filtered()
         {
             var filter = new FilterBroadcaster<string>(m_owner.m_kidsExcludeFilterAction, c_kidToFilter);
-            await filter.Broadcast(c_messageToSend);
+            return filter.Broadcast(c_messageToSend);
         }
         
         [Benchmark]
-        public async Task Unfiltered()
+        public ValueTask Unfiltered()
         {
-            await m_owner.Broadcast(c_messageToSend);
+            return m_owner.Broadcast(c_messageToSend);
         }
     }
 }
