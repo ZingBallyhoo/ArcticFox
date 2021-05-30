@@ -88,17 +88,17 @@ namespace ArcticFox.SmartFoxServer
         }
         
         [ComputeMethod]
-        public virtual Task<User?> GetByName(string name)
+        public virtual ValueTask<User?> GetByName(string name)
         {
             m_usersByName.TryGetValue(name, out var user);
-            return Task.FromResult(user);
+            return ValueTask.FromResult(user);
         }
         
         [ComputeMethod]
-        public virtual Task<User?> GetBySocket(HighLevelSocket socket)
+        public virtual ValueTask<User?> GetBySocket(HighLevelSocket socket)
         {
             m_usersBySocket.TryGetValue(socket, out var user);
-            return Task.FromResult(user);
+            return ValueTask.FromResult(user);
         }
     }
     
@@ -192,15 +192,15 @@ namespace ArcticFox.SmartFoxServer
         [ComputeMethod]
         public virtual async ValueTask<User?> GetUser(string name)
         {
-            using var rooms = await m_users.Get();
-            return await rooms.m_value.GetByName(name);
+            using var users = await m_users.Get();
+            return await users.m_value.GetByName(name);
         }
         
         [ComputeMethod]
         public virtual async ValueTask<User?> GetUser(HighLevelSocket socket)
         {
-            using var rooms = await m_users.Get();
-            return await rooms.m_value.GetBySocket(socket);
+            using var users = await m_users.Get();
+            return await users.m_value.GetBySocket(socket);
         }
         
         [ComputeMethod]
