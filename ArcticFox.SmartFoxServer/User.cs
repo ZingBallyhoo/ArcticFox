@@ -96,5 +96,7 @@ namespace ArcticFox.SmartFoxServer
                 await room.CheckTemporaryRoomDeletion();
             }
         }
+
+        public bool IsShutDown() => !m_canJoinRooms;
     }
 }
