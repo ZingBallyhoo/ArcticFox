@@ -116,6 +116,14 @@ namespace ArcticFox.SmartFoxServer
                 await m_description.m_creator.RemoveCreatedRoom(this);
             }
         }
+        
+        public async ValueTask<T[]> GetAllUserData<T>()
+        {
+            using (var users = await m_users.Get())
+            {
+                return users.m_value.Select(x => x.Value.GetUserData<T>()).ToArray();
+            }
+        }
 
         private async ValueTask UserExcludeFilter(NetEvent ne, User excludeUser)
         {

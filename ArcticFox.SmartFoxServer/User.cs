@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Util;
+using Castle.DynamicProxy.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
 
@@ -30,6 +31,8 @@ namespace ArcticFox.SmartFoxServer
         private readonly UserDescription m_description;
         private readonly AsyncLockedAccess<HashSet<Room>> m_createdRooms;
         private readonly AsyncLockedAccess<RoomCollection> m_rooms;
+
+        private object? m_userData;
 
         private bool m_canJoinRooms = true;
 
@@ -88,6 +91,21 @@ namespace ArcticFox.SmartFoxServer
             using var rooms = await m_rooms.Get();
             if (rooms.m_value.m_roomsByName.Count != 1) return null;
             return rooms.m_value.m_roomsByName.Values.First();
+        }
+
+        public void SetUserData(object? userData)
+        {
+            m_userData = userData;
+        }
+
+        public T GetUserData<T>()
+        {
+            var userData = m_userData;
+            if (!typeof(T).IsNullableType() && userData == null) // todo: checking IsNullableType every time...
+            {
+                throw new NullReferenceException(nameof(m_userData));
+            }
+            return (T)userData!;
         }
 
         public async ValueTask Shutdown()
