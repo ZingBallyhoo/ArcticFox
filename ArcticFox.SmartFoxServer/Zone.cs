@@ -69,6 +69,7 @@ namespace ArcticFox.SmartFoxServer
             
             using (Computed.Invalidate())
             {
+                GetByID(user.m_id).Ignore();
                 GetByName(user.m_name).Ignore();
                 if (user.m_socket != null) GetBySocket(user.m_socket).Ignore();
             }
@@ -82,9 +83,17 @@ namespace ArcticFox.SmartFoxServer
             
             using (Computed.Invalidate())
             {
+                GetByID(user.m_id).Ignore();
                 GetByName(user.m_name).Ignore();
                 if (user.m_socket != null) GetBySocket(user.m_socket).Ignore();
             }
+        }
+        
+        [ComputeMethod]
+        public virtual ValueTask<User?> GetByID(ulong id)
+        {
+            m_usersByID.TryGetValue(id, out var user);
+            return ValueTask.FromResult(user);
         }
         
         [ComputeMethod]
@@ -187,6 +196,13 @@ namespace ArcticFox.SmartFoxServer
             {
                 await room.Value.BroadcastEvent(ev);
             }
+        }
+        
+        [ComputeMethod]
+        public virtual async ValueTask<User?> GetUser(ulong id)
+        {
+            using var users = await m_users.Get();
+            return await users.m_value.GetByID(id);
         }
         
         [ComputeMethod]
