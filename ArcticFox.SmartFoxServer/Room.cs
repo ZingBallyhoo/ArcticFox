@@ -31,7 +31,8 @@ namespace ArcticFox.SmartFoxServer
         
         private readonly RoomDescription m_description;
         private readonly AsyncLockedAccess<Dictionary<ulong, User>> m_users;
-
+        
+        public readonly Func<NetEvent, User, ValueTask> m_userExcludeFilter;
         
         private bool m_canJoin = true;
 
@@ -42,6 +43,7 @@ namespace ArcticFox.SmartFoxServer
             m_zone = zone;
             m_systemHandler = systemHandler;
             m_users = new AsyncLockedAccess<Dictionary<ulong, User>>(new Dictionary<ulong, User>());
+            m_userExcludeFilter = UserExcludeFilter;
         }
         
         private async ValueTask<bool> CreatorIsGone()
@@ -112,6 +114,16 @@ namespace ArcticFox.SmartFoxServer
             if (m_description.m_creator != null)
             {
                 await m_description.m_creator.RemoveCreatedRoom(this);
+            }
+        }
+
+        private async ValueTask UserExcludeFilter(NetEvent ne, User excludeUser)
+        {
+            using var users = await m_users.Get();
+            foreach (var user in users.m_value)
+            {
+                if (user.Value.m_id == excludeUser.m_id) continue;
+                await user.Value.BroadcastEvent(ne);
             }
         }
         
