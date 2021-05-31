@@ -98,11 +98,7 @@ namespace ArcticFox.SmartFoxServer
 
         public async ValueTask<User> CreateUser(string name, HighLevelSocket? socket)
         {
-            var user = m_provider.Activate<User>(new UserDescription
-            {
-                m_name = name,
-                m_socket = socket
-            });
+            var user = m_provider.Activate<User>(new UserDescription(name, socket));
             using var users = await m_users.Get();
             users.m_value.AddUser(user);
             return user;

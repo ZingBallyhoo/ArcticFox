@@ -12,12 +12,8 @@ using Stl.Fusion;
 
 namespace ArcticFox.SmartFoxServer
 {
-    public class UserDescription
-    {
-        public string m_name;
-        public HighLevelSocket? m_socket;
-    }
-    
+    public record UserDescription(string m_name, HighLevelSocket? m_socket);
+
     [RegisterComputeService(Lifetime = ServiceLifetime.Transient)]
     public class User : IBroadcaster
     {
