@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ArcticFox.Net;
@@ -26,19 +25,19 @@ namespace ArcticFox.SmartFoxServer
 
         private readonly UserDescription m_description;
         private readonly AsyncLockedAccess<HashSet<Room>> m_createdRooms;
-        private readonly AsyncLockedAccess<RoomCollection> m_rooms;
+        private readonly AsyncLockedAccess<TypedRoomCollection> m_rooms;
 
         private object? m_userData;
 
         private bool m_canJoinRooms = true;
 
-        public User(UserDescription description, Zone zone, RoomCollection rooms)
+        public User(UserDescription description, Zone zone, TypedRoomCollection rooms)
         {
             m_id = s_idFactory.Next();
             m_description = description;
             m_zone = zone;
             m_createdRooms = new AsyncLockedAccess<HashSet<Room>>(new HashSet<Room>());
-            m_rooms = new AsyncLockedAccess<RoomCollection>(rooms);
+            m_rooms = new AsyncLockedAccess<TypedRoomCollection>(rooms);
         }
         
         public ValueTask BroadcastEvent(NetEvent ev)
@@ -47,7 +46,7 @@ namespace ArcticFox.SmartFoxServer
             return m_socket.BroadcastEvent(ev);
         }
         
-        public async ValueTask AddCreatedRoom(Room room)
+        internal async ValueTask AddCreatedRoom(Room room)
         {
             using var _ = await m_rooms.Get();
             using var createdRooms = await m_createdRooms.Get();
@@ -55,38 +54,66 @@ namespace ArcticFox.SmartFoxServer
             createdRooms.m_value.Add(room);
         }
         
-        public async ValueTask RemoveCreatedRoom(Room room)
+        public ValueTask MoveTo(Room room)
         {
-            using var _ = await m_rooms.Get();
+            return MoveTo(room, room.m_type);
+        }
+
+        public ValueTask RemoveFromRoom(int type)
+        {
+            return MoveTo(null, type);
+        }
+        
+        internal async ValueTask RemoveFromRoom(Room room)
+        {
+            using var rooms = await m_rooms.Get();
+            if (!rooms.m_value.m_roomsByType.TryGetValue(room.m_type, out var currentRoom)) return;
+            if (currentRoom.m_id != room.m_id) return;
+            await RemoveFromRoomInternal(room, rooms);
+        }
+
+        private async ValueTask RemoveFromRoomInternal(Room room, AsyncLockToken<TypedRoomCollection> rooms)
+        {
+            await room.RemoveUser(this);
+            rooms.m_value.RemoveRoom(room);
+        }
+        
+        private async ValueTask MoveTo(Room? room, int type)
+        {
+            using var rooms = await m_rooms.Get();
+            if (rooms.m_value.m_roomsByType.TryGetValue(type, out var currentRoom))
+            {
+                await RemoveFromRoomInternal(currentRoom, rooms);;
+            }
+            if (room != null)
+            {
+                if (!m_canJoinRooms) throw new Exception("can't add room as m_canJoinRooms is false");
+                await room.AddUser(this, rooms);
+            }
+        }
+        
+        internal async ValueTask RemoveCreatedRoom(Room room)
+        {
+            // todo: not locking m_rooms here, could be locked in MoveTo way outer?
             using var createdRooms = await m_createdRooms.Get();
             createdRooms.m_value.Remove(room);
         }
 
-        public async ValueTask AddRoomToList(Room room)
+        public async ValueTask<Room> GetRoom(int type=RoomTypeIDs.DEFAULT)
         {
-            using var rooms = await m_rooms.Get();
-            if (!m_canJoinRooms) throw new Exception("can't add room as m_canJoinRooms is false");
-            rooms.m_value.AddRoom(room);
+            var room = await GetRoomOrNull(type);
+            if (room == null)
+            {
+                throw new KeyNotFoundException($"Not in room of type {RoomTypeIDs.GetName(type)} ({type})");
+            }
+            return room;
         }
         
-        public async ValueTask RemoveRoomFromList(Room room)
+        public async ValueTask<Room?> GetRoomOrNull(int type=RoomTypeIDs.DEFAULT)
         {
             using var rooms = await m_rooms.Get();
-            rooms.m_value.RemoveRoom(room);
-        }
-
-        public async ValueTask<Room> GetPrimaryRoom()
-        {
-            using var rooms = await m_rooms.Get();
-            if (rooms.m_value.m_roomsByName.Count != 1) throw new InvalidDataException($"{nameof(GetPrimaryRoom)}: in {rooms.m_value.m_roomsByName.Count} rooms");
-            return rooms.m_value.m_roomsByName.Values.First();
-        }
-        
-        public async ValueTask<Room?> GetPrimaryRoomOrNull()
-        {
-            using var rooms = await m_rooms.Get();
-            if (rooms.m_value.m_roomsByName.Count != 1) return null;
-            return rooms.m_value.m_roomsByName.Values.First();
+            rooms.m_value.m_roomsByType.TryGetValue(type, out var room);
+            return room;
         }
 
         public void SetUserData(object? userData)
@@ -112,13 +139,13 @@ namespace ArcticFox.SmartFoxServer
             using (var createdRooms = await m_createdRooms.Get())
             {
                 m_canJoinRooms = false;
-                copiedRoomList = rooms.m_value.m_roomsByID.Values.ToArray();
+                copiedRoomList = rooms.m_value.m_roomsByType.Values.ToArray();
                 copiedCreatedRoomList = createdRooms.m_value.ToArray();
             }
             
             foreach (var room in copiedRoomList)
             {
-                await room.RemoveUser(this);
+                await RemoveFromRoom(room);
             }
             foreach (var room in copiedCreatedRoomList)
             {

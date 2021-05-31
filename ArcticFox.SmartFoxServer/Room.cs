@@ -14,8 +14,9 @@ namespace ArcticFox.SmartFoxServer
     {
         public string m_name;
         public User? m_creator;
+
+        public int m_type = RoomTypeIDs.DEFAULT;
         public int m_maxUsers = 10;
-        
         public bool m_isTemporary;
     }
     
@@ -27,6 +28,7 @@ namespace ArcticFox.SmartFoxServer
         public readonly ulong m_id;
         public readonly Zone m_zone;
         public string m_name => m_description.m_name;
+        public int m_type => m_description.m_type;
 
         private readonly ISystemHandler m_systemHandler;
         
@@ -56,18 +58,18 @@ namespace ArcticFox.SmartFoxServer
             return user == null;
         }
 
-        public async ValueTask AddUser(User user)
+        internal async ValueTask AddUser(User user, AsyncLockToken<TypedRoomCollection> userRooms)
         {
             using (var users = await m_users.Get())
             {
-                await user.AddRoomToList(this);
                 if (!m_canJoin) throw new Exception("can't join room, is shut down");
                 users.m_value.Add(user.m_id, user);
+                userRooms.m_value.AddRoom(this);
             }
             await m_systemHandler.UserJoinedRoom(this, user);
         }
 
-        public async ValueTask RemoveUser(User user)
+        internal async ValueTask RemoveUser(User user)
         {
             if (await RemoveUserInternal(user) == 0)
             {
@@ -95,7 +97,6 @@ namespace ArcticFox.SmartFoxServer
                 if (!users.m_value.Remove(user.m_id)) return -1;
                 newCount = users.m_value.Count;
             }
-            await user.RemoveRoomFromList(this);
             await m_systemHandler.UserLeftRoom(this, user);
             return newCount;
         }
@@ -111,7 +112,7 @@ namespace ArcticFox.SmartFoxServer
 
             foreach (var user in copiedUserList)
             {
-                await RemoveUserInternal(user);
+                await user.RemoveFromRoom(this);
             }
 
             if (m_description.m_creator != null)

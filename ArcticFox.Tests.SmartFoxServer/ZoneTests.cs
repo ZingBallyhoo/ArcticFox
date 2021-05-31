@@ -148,36 +148,36 @@ namespace ArcticFox.Tests.SmartFoxServer
             var roomGet1 = await zone.GetRoom(roomName);
             Assert.Same(roomGet1, room);
 
-            await persistentRoom.AddUser(user1);
-            await persistentRoom.RemoveUser(user1);
+            await user1.MoveTo(persistentRoom);
+            await user1.RemoveFromRoom(RoomTypeIDs.DEFAULT);
 
-            await room.AddUser(user1);
-            await room.AddUser(user2);
+            await user1.MoveTo(room);
+            await user2.MoveTo(room);
+
+            await user1.RemoveFromRoom(RoomTypeIDs.DEFAULT);
+            await user2.RemoveFromRoom(RoomTypeIDs.DEFAULT);
             
-            await room.RemoveUser(user1);
-            await room.RemoveUser(user2);
-            
-            await room.AddUser(user1);
-            await room.AddUser(user2);
+            await user1.MoveTo(room);
+            await user2.MoveTo(room);
             
             await zone.RemoveUser(user1);
             
             var roomGet2 = await zone.GetRoom(roomName);
             Assert.Same(roomGet2, room);
 
-            await room.RemoveUser(user2);
+            await user2.RemoveFromRoom(RoomTypeIDs.DEFAULT);
             
             var roomGet3 = await zone.GetRoom(roomName);
             Assert.Null(roomGet3);
 
-            await Assert.ThrowsAsync<Exception>(async () => await roomGet2.AddUser(user2));
+            await Assert.ThrowsAsync<Exception>(async () => await user2.MoveTo(roomGet2));
             
             await zone.RemoveUser(user2);
             
             var persistentRoomGet = await zone.GetRoom(persistentRoomName);
             Assert.Same(persistentRoom, persistentRoomGet);
             
-            await Assert.ThrowsAsync<Exception>(async () => await persistentRoom.AddUser(user2));
+            await Assert.ThrowsAsync<Exception>(async () => await user2.MoveTo(persistentRoom));
         }
 
         [Fact]
@@ -226,8 +226,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             await host.AddSocket(socket);
             var user = await socket.CreateUser("zone", userName);
             Assert.NotNull(user);
-            
-            await room.AddUser(user);
+
+            await user.MoveTo(room);
             
             user.m_socket!.Close();
             await Task.Delay(300);
@@ -253,7 +253,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             });
             
             var otherUser = await zone.CreateUser("other user", null);
-            await room.AddUser(otherUser);
+            await otherUser.MoveTo(room);
 
             await zone.RemoveUser(user);
             
