@@ -19,42 +19,6 @@ namespace ArcticFox.SmartFoxServer
     }
 
     [RegisterComputeService(Lifetime = ServiceLifetime.Transient)]
-    public class RoomCollection
-    {
-        public readonly Dictionary<ulong, Room> m_roomsByID = new Dictionary<ulong, Room>();
-        public readonly Dictionary<string, Room> m_roomsByName = new Dictionary<string, Room>();
-
-        public void AddRoom(Room room)
-        {
-            m_roomsByID.Add(room.m_id, room);
-            m_roomsByName.Add(room.m_name, room);
-            
-            using (Computed.Invalidate())
-            {
-                GetByName(room.m_name).Ignore();
-            }
-        }
-
-        public void RemoveRoom(Room room)
-        {
-            m_roomsByID.Remove(room.m_id);
-            m_roomsByName.Remove(room.m_name);
-            
-            using (Computed.Invalidate())
-            {
-                GetByName(room.m_name).Ignore();
-            }
-        }
-
-        [ComputeMethod]
-        public virtual Task<Room?> GetByName(string name)
-        {
-            m_roomsByName.TryGetValue(name, out var room);
-            return Task.FromResult(room);
-        }
-    }
-
-    [RegisterComputeService(Lifetime = ServiceLifetime.Transient)]
     public class ZoneUsers
     {
         public readonly Dictionary<ulong, User> m_usersByID = new Dictionary<ulong, User>();
@@ -159,8 +123,8 @@ namespace ArcticFox.SmartFoxServer
             var room = m_provider.Activate<Room>(desc);
             using (var rooms = await m_rooms.Get())
             {
-                if (desc.m_creator != null) await desc.m_creator.AddCreatedRoom(room);
                 rooms.m_value.AddRoom(room);
+                if (desc.m_creator != null) await desc.m_creator.AddCreatedRoom(room);
             }
             await m_systemHandler.RoomCreated(room);
             return room;

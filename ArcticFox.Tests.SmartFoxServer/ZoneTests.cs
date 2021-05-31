@@ -230,9 +230,50 @@ namespace ArcticFox.Tests.SmartFoxServer
             await room.AddUser(user);
             
             user.m_socket!.Close();
-            await Task.Delay(200);
+            await Task.Delay(300);
 
             Assert.Null(await zone.GetUser(userName));
+        }
+
+        [Fact]
+        public async Task DuplicateOwnedRoomDoesntDeleteOriginal()
+        {
+            var mgr = CreateMgr();
+            using var zone = await CreateZone(mgr, "zone");
+
+            const string ownerName = "room owner";
+            const string roomName = "owned room";
+            
+            var user = await zone.CreateUser(ownerName, null);
+            var room = await zone.CreateRoom(new RoomDescription
+            {
+                m_name = roomName,
+                m_creator = user,
+                m_isTemporary = true
+            });
+            
+            var otherUser = await zone.CreateUser("other user", null);
+            await room.AddUser(otherUser);
+
+            await zone.RemoveUser(user);
+            
+            // room stays alive cos the other user is in it
+            Assert.NotNull(await zone.GetRoom(roomName));
+
+            var userAgain = await zone.CreateUser(ownerName, null);
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            {
+                await zone.CreateRoom(new RoomDescription
+                {
+                    m_name = roomName,
+                    m_creator = userAgain,
+                    m_isTemporary = true
+                });
+            });
+            await zone.RemoveUser(userAgain);
+
+            // user error'd logging in but the existing room should still exist
+            Assert.NotNull(await zone.GetRoom(roomName));
         }
     }
 }
