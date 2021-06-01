@@ -83,8 +83,9 @@ namespace ArcticFox.SmartFoxServer
             using var rooms = await m_rooms.Get();
             if (rooms.m_value.m_roomsByType.TryGetValue(type, out var currentRoom))
             {
-                await RemoveFromRoomInternal(currentRoom, rooms);;
+                await RemoveFromRoomInternal(currentRoom, rooms);
             }
+            
             if (room != null)
             {
                 if (!m_canJoinRooms) throw new Exception("can't add room as m_canJoinRooms is false");
@@ -99,17 +100,14 @@ namespace ArcticFox.SmartFoxServer
             createdRooms.m_value.Remove(room);
         }
 
-        public async ValueTask<Room> GetRoom(int type=RoomTypeIDs.DEFAULT)
+        public async ValueTask<Room> GetRoom(int type = RoomTypeIDs.DEFAULT)
         {
             var room = await GetRoomOrNull(type);
-            if (room == null)
-            {
-                throw new KeyNotFoundException($"Not in room of type {RoomTypeIDs.GetName(type)} ({type})");
-            }
-            return room;
+            if (room != null) return room;
+            throw new KeyNotFoundException($"Not in room of type {RoomTypeIDs.GetName(type)} ({type})");
         }
         
-        public async ValueTask<Room?> GetRoomOrNull(int type=RoomTypeIDs.DEFAULT)
+        public async ValueTask<Room?> GetRoomOrNull(int type = RoomTypeIDs.DEFAULT)
         {
             using var rooms = await m_rooms.Get();
             rooms.m_value.m_roomsByType.TryGetValue(type, out var room);
@@ -124,10 +122,12 @@ namespace ArcticFox.SmartFoxServer
         public T GetUserData<T>()
         {
             var userData = m_userData;
+            
             if (!typeof(T).IsNullableType() && userData == null) // todo: checking IsNullableType every time...
             {
                 throw new NullReferenceException(nameof(m_userData));
             }
+            
             return (T)userData!;
         }
 

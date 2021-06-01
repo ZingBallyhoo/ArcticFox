@@ -66,15 +66,15 @@ namespace ArcticFox.SmartFoxServer
                 users.m_value.Add(user.m_id, user);
                 userRooms.m_value.AddRoom(this);
             }
+            
             await m_systemHandler.UserJoinedRoom(this, user);
         }
 
         internal async ValueTask RemoveUser(User user)
         {
-            if (await RemoveUserInternal(user) == 0)
-            {
-                await CheckTemporaryRoomDeletion();
-            }
+            if (await RemoveUserInternal(user) != 0) return;
+            
+            await CheckTemporaryRoomDeletion();
         }
         
         public async ValueTask CheckTemporaryRoomDeletion()
@@ -86,6 +86,7 @@ namespace ArcticFox.SmartFoxServer
             {
                 if (users.m_value.Count != 0) return;
             }
+            
             await m_zone.RemoveRoom(this);
         }
 
@@ -97,7 +98,9 @@ namespace ArcticFox.SmartFoxServer
                 if (!users.m_value.Remove(user.m_id)) return -1;
                 newCount = users.m_value.Count;
             }
+            
             await m_systemHandler.UserLeftRoom(this, user);
+            
             return newCount;
         }
 

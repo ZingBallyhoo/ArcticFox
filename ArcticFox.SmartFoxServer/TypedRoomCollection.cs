@@ -16,6 +16,7 @@ namespace ArcticFox.SmartFoxServer
             {
                 throw new ArgumentException();
             }
+            
             m_roomsByType.Add(room.m_type, room);
         }
 

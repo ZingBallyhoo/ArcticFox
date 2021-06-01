@@ -63,7 +63,7 @@ namespace ArcticFox.SmartFoxServer
             definition.m_scope = scope;
             var zone = scope.ServiceProvider.GetRequiredService<Zone>();
 
-            zones[name] = zone;
+            zones.Add(name, zone);
 
             using (Computed.Invalidate())
             {
