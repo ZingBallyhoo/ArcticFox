@@ -14,6 +14,7 @@ namespace ArcticFox.SmartFoxServer
     {
         public string m_name;
         public User? m_creator;
+        public object? m_data;
 
         public int m_type = RoomTypeIDs.DEFAULT;
         public int m_maxUsers = 50;
@@ -37,8 +38,8 @@ namespace ArcticFox.SmartFoxServer
         private readonly AsyncLockedAccess<Dictionary<ulong, User>> m_users;
         
         public readonly Func<NetEvent, User, ValueTask> m_userExcludeFilter;
-        
-        private object? m_data;
+
+        private object? m_data => m_description.m_data;
 
         private bool m_canJoin = true;
 
@@ -159,11 +160,6 @@ namespace ArcticFox.SmartFoxServer
             {
                 await user.Value.BroadcastEvent(ev);
             }
-        }
-        
-        public void SetData(object? data)
-        {
-            m_data = data;
         }
 
         public T GetData<T>()
