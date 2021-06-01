@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Sockets;
@@ -94,6 +95,12 @@ namespace ArcticFox.Tests.SmartFoxServer
             Assert.Equal("b", userB.m_name);
             Assert.NotSame(userA, userB);
             Assert.NotEqual(userA.m_id, userB.m_id);
+            
+            Assert.Equal(userA, await zone2.GetUser(userA.m_name));
+            Assert.Equal(userB, await zone2.GetUser(userB.m_name));
+            
+            Assert.Equal(userA, await zone2.GetUser(userA.m_id));
+            Assert.Equal(userB, await zone2.GetUser(userB.m_id));
 
             await Assert.ThrowsAsync<ArgumentException>(async () => await zone2.CreateUser("b", null));
         }
@@ -227,12 +234,16 @@ namespace ArcticFox.Tests.SmartFoxServer
             var user = await socket.CreateUser("zone", userName);
             Assert.NotNull(user);
 
+            var userGet = socket.GetUser();
+            Assert.Same(user, userGet);
+
             await user.MoveTo(room);
             
             user.m_socket!.Close();
             await Task.Delay(300);
 
             Assert.Null(await zone.GetUser(userName));
+            Assert.Throws<NullReferenceException>(() => socket.GetUser());
         }
 
         [Fact]
@@ -274,6 +285,60 @@ namespace ArcticFox.Tests.SmartFoxServer
 
             // user error'd logging in but the existing room should still exist
             Assert.NotNull(await zone.GetRoom(roomName));
+        }
+
+        [Fact]
+        public async Task TwoTypesOfRoom()
+        {
+            var mgr = CreateMgr();
+            using var zone = await CreateZone(mgr, "zone");
+            
+            var room0_0 = await zone.CreateRoom(new RoomDescription
+            {
+                m_name = "0_0",
+                m_type = 0
+            });
+            var room0_1 = await zone.CreateRoom(new RoomDescription
+            {
+                m_name = "0_1",
+                m_type = 0
+            });
+            var room1 = await zone.CreateRoom(new RoomDescription
+            {
+                m_name = "1",
+                m_type = 1
+            });;
+            
+            var user = await zone.CreateUser("user", null);
+            user.SetUserData(new object());
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(async () => await user.GetRoom(0));
+            await Assert.ThrowsAsync<KeyNotFoundException>(async () => await user.GetRoom(1));
+            Assert.Null(await user.GetRoomOrNull(0));
+            Assert.Null(await user.GetRoomOrNull(1));
+            
+            await user.MoveTo(room0_0);
+            await user.MoveTo(room1);
+            
+            Assert.Equal(room0_0, await user.GetRoom(0));
+            Assert.Equal(room0_0, await user.GetRoomOrNull(0));
+            
+            Assert.Equal(room1, await user.GetRoom(1));
+            Assert.Equal(room1, await user.GetRoomOrNull(1));
+            
+            Assert.Single(await room0_0.GetAllUserData<object>());
+            Assert.Empty(await room0_1.GetAllUserData<object>());
+            Assert.Single(await room1.GetAllUserData<object>());
+            
+            await user.MoveTo(room0_1);
+            
+            Assert.Empty(await room0_0.GetAllUserData<object>());
+            Assert.Single(await room0_1.GetAllUserData<object>());
+            Assert.Single(await room1.GetAllUserData<object>());
+
+            await user.RemoveFromRoom(room1.m_type);
+            
+            Assert.Empty(await room1.GetAllUserData<object>());
         }
     }
 }
