@@ -50,7 +50,7 @@ namespace ArcticFox.SmartFoxServer
         {
             using var _ = await m_rooms.Get();
             using var createdRooms = await m_createdRooms.Get();
-            if (!m_canJoinRooms) throw new Exception("can't create room as m_canJoinRooms is false");
+            if (!m_canJoinRooms) throw new ObjectDisposedException("can't create room as m_canJoinRooms is false");
             createdRooms.m_value.Add(room);
         }
         
@@ -88,7 +88,7 @@ namespace ArcticFox.SmartFoxServer
             
             if (room != null)
             {
-                if (!m_canJoinRooms) throw new Exception("can't add room as m_canJoinRooms is false");
+                if (!m_canJoinRooms) throw new ObjectDisposedException("can't add room as m_canJoinRooms is false");
                 await room.AddUser(this, rooms);
             }
         }

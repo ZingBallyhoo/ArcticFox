@@ -26,7 +26,7 @@ namespace ArcticFox.SmartFoxServer
         {
             var user = m_user;
             if (user == null) throw new NullReferenceException("never logged in");
-            if (user.IsShutDown()) throw new NullReferenceException("user logged out");
+            if (user.IsShutDown()) throw new ObjectDisposedException("user logged out");
             return user;
         }
 

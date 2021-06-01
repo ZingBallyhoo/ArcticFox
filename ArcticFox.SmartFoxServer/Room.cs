@@ -16,7 +16,7 @@ namespace ArcticFox.SmartFoxServer
         public User? m_creator;
 
         public int m_type = RoomTypeIDs.DEFAULT;
-        public int m_maxUsers = 10;
+        public int m_maxUsers = 50;
         public bool m_isTemporary;
     }
     
@@ -29,6 +29,7 @@ namespace ArcticFox.SmartFoxServer
         public readonly Zone m_zone;
         public string m_name => m_description.m_name;
         public int m_type => m_description.m_type;
+        public int m_maxUsers => m_description.m_maxUsers;
 
         private readonly ISystemHandler m_systemHandler;
         
@@ -62,12 +63,17 @@ namespace ArcticFox.SmartFoxServer
         {
             using (var users = await m_users.Get())
             {
-                if (!m_canJoin) throw new Exception("can't join room, is shut down");
+                if (!m_canJoin) throw new ObjectDisposedException("can't join room, is shut down");
+                if (m_maxUsers != -1 && users.m_value.Count >= m_maxUsers) throw new RoomFullException();
                 users.m_value.Add(user.m_id, user);
                 userRooms.m_value.AddRoom(this);
             }
             
             await m_systemHandler.UserJoinedRoom(this, user);
+            if (m_data is IRoomEventHandler eventHandler)
+            {
+                await eventHandler.UserJoinedRoom(this, user);
+            }
         }
 
         internal async ValueTask RemoveUser(User user)
@@ -100,6 +106,10 @@ namespace ArcticFox.SmartFoxServer
             }
             
             await m_systemHandler.UserLeftRoom(this, user);
+            if (m_data is IRoomEventHandler eventHandler)
+            {
+                await eventHandler.UserLeftRoom(this, user);
+            }
             
             return newCount;
         }
