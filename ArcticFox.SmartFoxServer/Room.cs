@@ -9,15 +9,14 @@ using Stl.Fusion;
 
 namespace ArcticFox.SmartFoxServer
 {
-    public class RoomDescription
+    public record RoomDescription(string m_name)
     {
-        public string m_name;
-        public User? m_creator;
-        public object? m_data;
+        public User? m_creator { get; init; }
+        public object? m_data { get; init; }
 
-        public int m_type = RoomTypeIDs.DEFAULT;
-        public int m_maxUsers = 50;
-        public bool m_isTemporary;
+        public int m_type { get; init; } = RoomTypeIDs.DEFAULT;
+        public int m_maxUsers { get; init; } = 50;
+        public bool m_isTemporary { get; init; }
     }
     
     [RegisterComputeService(Lifetime = ServiceLifetime.Transient)]

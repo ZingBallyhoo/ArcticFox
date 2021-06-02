@@ -114,9 +114,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             const string roomName = "user_house";
             
             var user = await zone.CreateUser("user", new TestSocket(new NullSocketInterface()));
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription(roomName)
             {
-                m_name = roomName,
                 m_creator = user,
                 m_isTemporary = true
             });
@@ -140,17 +139,13 @@ namespace ArcticFox.Tests.SmartFoxServer
             
             var user1 = await zone.CreateUser("user1", null);
             var user2 = await zone.CreateUser("user2", null);
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription(roomName)
             {
-                m_name = roomName,
                 m_creator = user1,
                 m_isTemporary = true
             });
             Assert.NotNull(room);
-            var persistentRoom = await zone.CreateRoom(new RoomDescription
-            {
-                m_name = persistentRoomName
-            });
+            var persistentRoom = await zone.CreateRoom(persistentRoomName);
 
             var roomGet1 = await zone.GetRoom(roomName);
             Assert.Same(roomGet1, room);
@@ -221,10 +216,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             
             var mgr = CreateMgr();
             using var zone = await CreateZone(mgr, "zone");
-            var room = await zone.CreateRoom(new RoomDescription
-            {
-                m_name = "the room"
-            });
+            var room = await zone.CreateRoom("the room");
             
             await using var host = new TestSFSSocketHost(mgr);
             await host.StartAsync();
@@ -256,9 +248,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             const string roomName = "owned room";
             
             var user = await zone.CreateUser(ownerName, null);
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription(roomName)
             {
-                m_name = roomName,
                 m_creator = user,
                 m_isTemporary = true
             });
@@ -274,9 +265,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             var userAgain = await zone.CreateUser(ownerName, null);
             await Assert.ThrowsAsync<ArgumentException>(async () =>
             {
-                await zone.CreateRoom(new RoomDescription
+                await zone.CreateRoom(new RoomDescription(roomName)
                 {
-                    m_name = roomName,
                     m_creator = userAgain,
                     m_isTemporary = true
                 });
@@ -293,19 +283,16 @@ namespace ArcticFox.Tests.SmartFoxServer
             var mgr = CreateMgr();
             using var zone = await CreateZone(mgr, "zone");
             
-            var room0_0 = await zone.CreateRoom(new RoomDescription
+            var room0_0 = await zone.CreateRoom(new RoomDescription("0_0")
             {
-                m_name = "0_0",
                 m_type = 0
             });
-            var room0_1 = await zone.CreateRoom(new RoomDescription
+            var room0_1 = await zone.CreateRoom(new RoomDescription("0_1")
             {
-                m_name = "0_1",
                 m_type = 0
             });
-            var room1 = await zone.CreateRoom(new RoomDescription
+            var room1 = await zone.CreateRoom(new RoomDescription("1")
             {
-                m_name = "1",
                 m_type = 1
             });;
             
@@ -347,9 +334,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             var mgr = CreateMgr();
             using var zone = await CreateZone(mgr, "zone");
             
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription("room")
             {
-                m_name = "room",
                 m_maxUsers = 2
             });
             
