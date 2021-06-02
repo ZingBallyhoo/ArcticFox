@@ -114,7 +114,7 @@ namespace ArcticFox.SmartFoxServer
             return room;
         }
 
-        public void SetUserData(object? userData)
+        public void SetUserData(object userData)
         {
             m_userData = userData;
         }
@@ -122,12 +122,7 @@ namespace ArcticFox.SmartFoxServer
         public T GetUserData<T>()
         {
             var userData = m_userData;
-            
-            if (!typeof(T).IsNullableType() && userData == null) // todo: checking IsNullableType every time...
-            {
-                throw new NullReferenceException(nameof(m_userData));
-            }
-            
+            if (userData == null) throw new NullReferenceException(nameof(m_userData));
             return (T)userData!;
         }
 

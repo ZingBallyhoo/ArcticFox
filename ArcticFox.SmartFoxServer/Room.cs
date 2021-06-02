@@ -39,7 +39,7 @@ namespace ArcticFox.SmartFoxServer
         
         public readonly Func<NetEvent, User, ValueTask> m_userExcludeFilter;
 
-        private object? m_data => m_description.m_data;
+        private object? m_data;
 
         private bool m_canJoin = true;
 
@@ -49,6 +49,7 @@ namespace ArcticFox.SmartFoxServer
             m_description = desc;
             m_zone = zone;
             m_systemHandler = systemHandler;
+            m_data = desc.m_data;
             m_users = new AsyncLockedAccess<Dictionary<ulong, User>>(new Dictionary<ulong, User>());
             m_userExcludeFilter = UserExcludeFilter;
         }
@@ -161,14 +162,16 @@ namespace ArcticFox.SmartFoxServer
                 await user.Value.BroadcastEvent(ev);
             }
         }
+        
+        public void SetData(object data)
+        {
+            m_data = data;
+        }
 
         public T GetData<T>()
         {
             var data = m_data;
-            if (!typeof(T).IsNullableType() && data == null) // todo: checking IsNullableType every time...
-            {
-                throw new NullReferenceException(nameof(m_data));
-            }
+            if (data == null) throw new NullReferenceException(nameof(m_data));
             return (T)data!;
         }
     }
