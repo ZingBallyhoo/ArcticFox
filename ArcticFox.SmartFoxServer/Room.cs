@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Util;
-using Castle.DynamicProxy.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
 
