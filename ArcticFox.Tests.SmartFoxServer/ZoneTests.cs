@@ -203,7 +203,7 @@ namespace ArcticFox.Tests.SmartFoxServer
 
             await mgr.CreateUser("bob", null, "zone");
 
-            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await Assert.ThrowsAsync<UserExistsException>(async () =>
             {
                 await mgr.CreateUser("bob", null, "zone2");
             });
