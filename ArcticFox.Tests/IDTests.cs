@@ -1,8 +1,8 @@
 using System.Threading;
-using ArcticFox.SmartFoxServer;
+using ArcticFox.Net.Util;
 using Xunit;
 
-namespace ArcticFox.Tests.SmartFoxServer
+namespace ArcticFox.Tests
 {
     public class IDTests
     {

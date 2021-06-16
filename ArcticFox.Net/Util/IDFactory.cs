@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace ArcticFox.SmartFoxServer
+namespace ArcticFox.Net.Util
 {
     public class IDFactory
     {
