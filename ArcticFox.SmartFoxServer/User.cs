@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Util;
-using Castle.DynamicProxy.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
 
@@ -50,7 +49,7 @@ namespace ArcticFox.SmartFoxServer
         {
             using var _ = await m_rooms.Get();
             using var createdRooms = await m_createdRooms.Get();
-            if (!m_canJoinRooms) throw new Exception("can't create room as m_canJoinRooms is false");
+            if (!m_canJoinRooms) throw new ObjectDisposedException("can't create room as m_canJoinRooms is false");
             createdRooms.m_value.Add(room);
         }
         
@@ -88,7 +87,7 @@ namespace ArcticFox.SmartFoxServer
             
             if (room != null)
             {
-                if (!m_canJoinRooms) throw new Exception("can't add room as m_canJoinRooms is false");
+                if (!m_canJoinRooms) throw new ObjectDisposedException("can't add room as m_canJoinRooms is false");
                 await room.AddUser(this, rooms);
             }
         }
@@ -114,7 +113,7 @@ namespace ArcticFox.SmartFoxServer
             return room;
         }
 
-        public void SetUserData(object? userData)
+        public void SetUserData(object userData)
         {
             m_userData = userData;
         }
@@ -122,12 +121,7 @@ namespace ArcticFox.SmartFoxServer
         public T GetUserData<T>()
         {
             var userData = m_userData;
-            
-            if (!typeof(T).IsNullableType() && userData == null) // todo: checking IsNullableType every time...
-            {
-                throw new NullReferenceException(nameof(m_userData));
-            }
-            
+            if (userData == null) throw new NullReferenceException(nameof(m_userData));
             return (T)userData!;
         }
 

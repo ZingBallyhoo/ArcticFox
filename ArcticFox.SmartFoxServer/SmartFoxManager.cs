@@ -31,7 +31,7 @@ namespace ArcticFox.SmartFoxServer
             {
                 var userInZone = await zoneToCheck.GetUser(name);
                 if (userInZone == null) continue;
-                throw new ArgumentException($"{nameof(CreateUser)}: user {name} is already logged into {zoneToCheck.m_name}");
+                throw new UserExistsException($"{nameof(CreateUser)}: user {name} is already logged into {zoneToCheck.m_name}");
             }
 
             var user = await zone.CreateUser(name, socket);

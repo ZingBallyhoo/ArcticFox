@@ -128,10 +128,7 @@ namespace ArcticFox.SmartFoxServer
 
         public ValueTask<Room> CreateRoom(string name)
         {
-            return CreateRoom(new RoomDescription
-            {
-                m_name = name
-            });
+            return CreateRoom(new RoomDescription(name));
         }
 
         public async ValueTask RemoveRoom(Room room)

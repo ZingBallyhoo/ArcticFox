@@ -114,9 +114,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             const string roomName = "user_house";
             
             var user = await zone.CreateUser("user", new TestSocket(new NullSocketInterface()));
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription(roomName)
             {
-                m_name = roomName,
                 m_creator = user,
                 m_isTemporary = true
             });
@@ -140,17 +139,13 @@ namespace ArcticFox.Tests.SmartFoxServer
             
             var user1 = await zone.CreateUser("user1", null);
             var user2 = await zone.CreateUser("user2", null);
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription(roomName)
             {
-                m_name = roomName,
                 m_creator = user1,
                 m_isTemporary = true
             });
             Assert.NotNull(room);
-            var persistentRoom = await zone.CreateRoom(new RoomDescription
-            {
-                m_name = persistentRoomName
-            });
+            var persistentRoom = await zone.CreateRoom(persistentRoomName);
 
             var roomGet1 = await zone.GetRoom(roomName);
             Assert.Same(roomGet1, room);
@@ -177,14 +172,14 @@ namespace ArcticFox.Tests.SmartFoxServer
             var roomGet3 = await zone.GetRoom(roomName);
             Assert.Null(roomGet3);
 
-            await Assert.ThrowsAsync<Exception>(async () => await user2.MoveTo(roomGet2));
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await user2.MoveTo(roomGet2));
             
             await zone.RemoveUser(user2);
             
             var persistentRoomGet = await zone.GetRoom(persistentRoomName);
             Assert.Same(persistentRoom, persistentRoomGet);
             
-            await Assert.ThrowsAsync<Exception>(async () => await user2.MoveTo(persistentRoom));
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await user2.MoveTo(persistentRoom));
         }
 
         [Fact]
@@ -208,7 +203,7 @@ namespace ArcticFox.Tests.SmartFoxServer
 
             await mgr.CreateUser("bob", null, "zone");
 
-            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await Assert.ThrowsAsync<UserExistsException>(async () =>
             {
                 await mgr.CreateUser("bob", null, "zone2");
             });
@@ -221,10 +216,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             
             var mgr = CreateMgr();
             using var zone = await CreateZone(mgr, "zone");
-            var room = await zone.CreateRoom(new RoomDescription
-            {
-                m_name = "the room"
-            });
+            var room = await zone.CreateRoom("the room");
             
             await using var host = new TestSFSSocketHost(mgr);
             await host.StartAsync();
@@ -243,7 +235,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             await Task.Delay(300);
 
             Assert.Null(await zone.GetUser(userName));
-            Assert.Throws<NullReferenceException>(() => socket.GetUser());
+            Assert.Throws<ObjectDisposedException>(() => socket.GetUser());
         }
 
         [Fact]
@@ -256,9 +248,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             const string roomName = "owned room";
             
             var user = await zone.CreateUser(ownerName, null);
-            var room = await zone.CreateRoom(new RoomDescription
+            var room = await zone.CreateRoom(new RoomDescription(roomName)
             {
-                m_name = roomName,
                 m_creator = user,
                 m_isTemporary = true
             });
@@ -274,9 +265,8 @@ namespace ArcticFox.Tests.SmartFoxServer
             var userAgain = await zone.CreateUser(ownerName, null);
             await Assert.ThrowsAsync<ArgumentException>(async () =>
             {
-                await zone.CreateRoom(new RoomDescription
+                await zone.CreateRoom(new RoomDescription(roomName)
                 {
-                    m_name = roomName,
                     m_creator = userAgain,
                     m_isTemporary = true
                 });
@@ -293,19 +283,16 @@ namespace ArcticFox.Tests.SmartFoxServer
             var mgr = CreateMgr();
             using var zone = await CreateZone(mgr, "zone");
             
-            var room0_0 = await zone.CreateRoom(new RoomDescription
+            var room0_0 = await zone.CreateRoom(new RoomDescription("0_0")
             {
-                m_name = "0_0",
                 m_type = 0
             });
-            var room0_1 = await zone.CreateRoom(new RoomDescription
+            var room0_1 = await zone.CreateRoom(new RoomDescription("0_1")
             {
-                m_name = "0_1",
                 m_type = 0
             });
-            var room1 = await zone.CreateRoom(new RoomDescription
+            var room1 = await zone.CreateRoom(new RoomDescription("1")
             {
-                m_name = "1",
                 m_type = 1
             });;
             
@@ -339,6 +326,35 @@ namespace ArcticFox.Tests.SmartFoxServer
             await user.RemoveFromRoom(room1.m_type);
             
             Assert.Empty(await room1.GetAllUserData<object>());
+        }
+        
+        [Fact]
+        public async Task MaxRoomSize()
+        {
+            var mgr = CreateMgr();
+            using var zone = await CreateZone(mgr, "zone");
+            
+            var room = await zone.CreateRoom(new RoomDescription("room")
+            {
+                m_maxUsers = 2
+            });
+            
+            var user1 = await zone.CreateUser("user1", null);
+            var user2 = await zone.CreateUser("user2", null);
+            var user3 = await zone.CreateUser("user3", null);
+
+            await user1.MoveTo(room); // 1
+            await user2.MoveTo(room); // 2
+            
+            await Assert.ThrowsAsync<RoomFullException>(async () => await user3.MoveTo(room)); // 2, err
+            
+            await user1.RemoveFromRoom(room.m_type); // 1
+            await user3.MoveTo(room); // 2
+            
+            await user2.RemoveFromRoom(room.m_type); // 1
+            await user1.MoveTo(room); // 2
+            
+            await Assert.ThrowsAsync<RoomFullException>(async () => await user2.MoveTo(room)); // 2, err
         }
     }
 }

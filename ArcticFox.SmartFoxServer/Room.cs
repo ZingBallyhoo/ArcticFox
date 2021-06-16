@@ -4,20 +4,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Util;
-using Castle.DynamicProxy.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
 
 namespace ArcticFox.SmartFoxServer
 {
-    public class RoomDescription
+    public record RoomDescription(string m_name)
     {
-        public string m_name;
-        public User? m_creator;
+        public User? m_creator { get; init; }
+        public object? m_data { get; init; }
 
-        public int m_type = RoomTypeIDs.DEFAULT;
-        public int m_maxUsers = 10;
-        public bool m_isTemporary;
+        public int m_type { get; init; } = RoomTypeIDs.DEFAULT;
+        public int m_maxUsers { get; init; } = 50;
+        public bool m_isTemporary { get; init; }
     }
     
     [RegisterComputeService(Lifetime = ServiceLifetime.Transient)]
@@ -29,6 +28,7 @@ namespace ArcticFox.SmartFoxServer
         public readonly Zone m_zone;
         public string m_name => m_description.m_name;
         public int m_type => m_description.m_type;
+        public int m_maxUsers => m_description.m_maxUsers;
 
         private readonly ISystemHandler m_systemHandler;
         
@@ -36,7 +36,7 @@ namespace ArcticFox.SmartFoxServer
         private readonly AsyncLockedAccess<Dictionary<ulong, User>> m_users;
         
         public readonly Func<NetEvent, User, ValueTask> m_userExcludeFilter;
-        
+
         private object? m_data;
 
         private bool m_canJoin = true;
@@ -47,6 +47,7 @@ namespace ArcticFox.SmartFoxServer
             m_description = desc;
             m_zone = zone;
             m_systemHandler = systemHandler;
+            m_data = desc.m_data;
             m_users = new AsyncLockedAccess<Dictionary<ulong, User>>(new Dictionary<ulong, User>());
             m_userExcludeFilter = UserExcludeFilter;
         }
@@ -62,12 +63,17 @@ namespace ArcticFox.SmartFoxServer
         {
             using (var users = await m_users.Get())
             {
-                if (!m_canJoin) throw new Exception("can't join room, is shut down");
+                if (!m_canJoin) throw new ObjectDisposedException("can't join room, is shut down");
+                if (m_maxUsers != -1 && users.m_value.Count >= m_maxUsers) throw new RoomFullException();
                 users.m_value.Add(user.m_id, user);
                 userRooms.m_value.AddRoom(this);
             }
             
             await m_systemHandler.UserJoinedRoom(this, user);
+            if (m_data is IRoomEventHandler eventHandler)
+            {
+                await eventHandler.UserJoinedRoom(this, user);
+            }
         }
 
         internal async ValueTask RemoveUser(User user)
@@ -100,6 +106,10 @@ namespace ArcticFox.SmartFoxServer
             }
             
             await m_systemHandler.UserLeftRoom(this, user);
+            if (m_data is IRoomEventHandler eventHandler)
+            {
+                await eventHandler.UserLeftRoom(this, user);
+            }
             
             return newCount;
         }
@@ -151,7 +161,7 @@ namespace ArcticFox.SmartFoxServer
             }
         }
         
-        public void SetData(object? data)
+        public void SetData(object data)
         {
             m_data = data;
         }
@@ -159,10 +169,7 @@ namespace ArcticFox.SmartFoxServer
         public T GetData<T>()
         {
             var data = m_data;
-            if (!typeof(T).IsNullableType() && data == null) // todo: checking IsNullableType every time...
-            {
-                throw new NullReferenceException(nameof(m_data));
-            }
+            if (data == null) throw new NullReferenceException(nameof(m_data));
             return (T)data!;
         }
     }

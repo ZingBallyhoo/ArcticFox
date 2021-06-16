@@ -5,6 +5,8 @@ namespace ArcticFox.SmartFoxServer
 {
     public static class RoomTypeIDs
     {
+        public const int DEFAULT = 0;
+
         private static readonly IDFactory s_typeIdFactory = new IDFactory();
         private static readonly Dictionary<int, string> s_names = new Dictionary<int, string>
         {
@@ -14,10 +16,9 @@ namespace ArcticFox.SmartFoxServer
         {
             {0, new IDFactory()}
         };
+        private static readonly IDFactory s_unknownTypeNameFactory = new IDFactory();
 
-        public const int DEFAULT = 0;
-
-        public static int Next(string name)
+        public static int NewType(string name)
         {
             var id = (int)s_typeIdFactory.Next();
             s_names[id] = name;
@@ -28,7 +29,8 @@ namespace ArcticFox.SmartFoxServer
         public static string GenerateRoomName(int typeID)
         {
             var typeName = GetName(typeID);
-            var idFactory = s_defaultNameFactories[typeID];
+            s_defaultNameFactories.TryGetValue(typeID, out var idFactory);
+            idFactory ??= s_unknownTypeNameFactory;
             return $"{typeName}_{idFactory.Next()}";
         }
 
