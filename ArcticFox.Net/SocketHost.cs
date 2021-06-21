@@ -41,7 +41,7 @@ namespace ArcticFox.Net
             return m_taskCompletionSource.Task;
         }
 
-        private ISendContext CreateSendContext(Memory<byte>? existingMemory=null)
+        protected virtual ISendContext CreateSendContext(Memory<byte>? existingMemory=null)
         {
             if (m_batchMessages)
             {

@@ -44,7 +44,8 @@ namespace ArcticFox.Net
         {
             var inputCodec = m_netInputCodec;
             if (inputCodec == null) throw new NullReferenceException("No input codec");
-            inputCodec.Head<byte>().Input2(data);
+            
+            inputCodec.Head<byte>().Input2(data, m_socket);
         }
 
         public void Close()

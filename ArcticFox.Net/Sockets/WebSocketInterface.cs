@@ -9,7 +9,9 @@ namespace ArcticFox.Net.Sockets
     {
         private readonly WebSocket m_webSocket;
         private readonly bool m_binaryMessages;
-        
+
+        public bool m_lastRecvWasEndOfMessage { get; protected set; }
+
         public WebSocketInterface(WebSocket webSocket, bool binaryMessages)
         {
             m_webSocket = webSocket;
@@ -18,18 +20,28 @@ namespace ArcticFox.Net.Sockets
 
         public override ValueTask SendBuffer(ReadOnlyMemory<byte> data)
         {
-            // todo: somehow support batching with no end of message flag?
-            return m_webSocket.SendAsync(data, m_binaryMessages ? WebSocketMessageType.Binary : WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, m_cancellationTokenSource.Token);
+            return SendBuffer(data, true);
+        }
+
+        public virtual ValueTask SendBuffer(ReadOnlyMemory<byte> data, bool endOfMessage)
+        {
+            return m_webSocket.SendAsync(data,
+                m_binaryMessages ? WebSocketMessageType.Binary : WebSocketMessageType.Text,
+                endOfMessage ? WebSocketMessageFlags.EndOfMessage : WebSocketMessageFlags.None,
+                m_cancellationTokenSource.Token);
         }
 
         public override async ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
         {
             var result = await m_webSocket.ReceiveAsync(buffer, m_cancellationTokenSource.Token);
+            m_lastRecvWasEndOfMessage = result.EndOfMessage;
+            
             if (result.MessageType == WebSocketMessageType.Close)
             {
                 Close();
                 return 0;
             }
+            
             return result.Count;
         }
 
