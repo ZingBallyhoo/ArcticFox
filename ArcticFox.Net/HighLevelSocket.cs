@@ -58,7 +58,7 @@ namespace ArcticFox.Net
             return m_socket.IsClosed();
         }
         
-        public ValueTask<int> HandlePendingSendEvents(ISendContext ctx)
+        public virtual ValueTask<int> HandlePendingSendEvents(ISendContext ctx)
         {
             return m_netEventQueue.FlushEventsToSocket(m_socket, ctx);
         }

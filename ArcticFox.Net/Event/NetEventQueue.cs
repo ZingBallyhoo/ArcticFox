@@ -9,7 +9,7 @@ namespace ArcticFox.Net.Event
 {
     public class NetEventQueue : IBroadcaster, IAsyncDisposable
     {
-        private readonly AsyncLockedAccess<Queue<NetEvent>> m_eventQueue = new AsyncLockedAccess<Queue<NetEvent>>(new Queue<NetEvent>());
+        protected readonly AsyncLockedAccess<Queue<NetEvent>> m_eventQueue = new AsyncLockedAccess<Queue<NetEvent>>(new Queue<NetEvent>());
         private bool m_acceptingEvents = true;
         
         public int m_maxQueueSize = 100;

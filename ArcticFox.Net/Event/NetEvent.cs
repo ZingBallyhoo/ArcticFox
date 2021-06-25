@@ -6,8 +6,8 @@ namespace ArcticFox.Net.Event
     public class NetEvent : RefCounted
     {
         private MemoryOwner<byte> m_memoryOwner;
-        
-        private NetEvent(ReadOnlySpan<byte> data)
+
+        protected NetEvent(ReadOnlySpan<byte> data)
         {
             m_memoryOwner = MemoryOwner<byte>.Allocate(data.Length);
             data.CopyTo(m_memoryOwner.Span);
