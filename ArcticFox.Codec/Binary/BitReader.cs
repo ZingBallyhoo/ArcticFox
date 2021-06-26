@@ -7,6 +7,7 @@ namespace ArcticFox.Codec.Binary
     {        
         private readonly ReadOnlySpan<byte> m_data;
         public int m_dataOffset { get; private set; }
+        public int m_dataLength => m_data.Length;
 
         private byte m_bitValue;
         public byte m_bitPositionInByte { get; private set; }
@@ -99,6 +100,12 @@ namespace ArcticFox.Codec.Binary
             writer.FlushBit();
 
             return obj;
+        }
+
+        public void SkipBytes(int count)
+        {
+            ClearBit();
+            m_dataOffset += count;
         }
     }
 }
