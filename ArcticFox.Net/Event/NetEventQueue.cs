@@ -21,54 +21,60 @@ namespace ArcticFox.Net.Event
 
         private async ValueTask EnqueueEvent(NetEvent @event)
         {
-            using (var queueToken = await m_eventQueue.Get())
-            {
-                var queue = queueToken.m_value;
-                if (!m_acceptingEvents) return;
+            using var queueToken = await m_eventQueue.Get();
+            if (!m_acceptingEvents) return;
 
-                if (m_maxQueueSize != -1 && queue.Count > m_maxQueueSize)
-                {
-                    // Log.Error("Send queue too big, dropping packet");
-                    return;
-                }
-                @event.GetRef();
-                queue.Enqueue(@event);
+            var queue = queueToken.m_value;
+
+            if (m_maxQueueSize != -1 && queue.Count > m_maxQueueSize)
+            {
+                // Log.Error("Send queue too big, dropping packet");
+                return;
             }
+            
+            @event.GetRef();
+            queue.Enqueue(@event);
         }
 
-        public async ValueTask<int> FlushEventsToSocket(SocketInterface socket, ISendContext ctx)
+        public ValueTask<int> FlushEventsToSocket(SocketInterface socket, ISendContext ctx)
         {
-            if (socket.IsClosed()) return 0;
-            
-            using (var queueToken = m_eventQueue.GetNoWait())
+            if (socket.IsClosed()) return ValueTask.FromResult(0);
+
+            using var queueToken = m_eventQueue.GetNoWait();
+            if (queueToken == null)
             {
-                if (queueToken == null) return 0;
-                
-                var queue = queueToken.m_value;
-                var count = queue.Count;
-                
-                while (queue.Count > 0)
-                {                    
-                    var ev = queue.Dequeue();
-                    await ctx.AddMessage(socket, ev.GetMemory(), queue.Count);
-                    ev.ReleaseRef();
-                }
-                await ctx.Flush(socket);
-                
-                return count;
+                // someone else is holding the lock already, let them finish
+                return ValueTask.FromResult(0);
             }
+
+            // only create state machine if we actually need to send
+            return FlushEventsToSocketInternal(socket, ctx, queueToken);
+        }
+
+        private async ValueTask<int> FlushEventsToSocketInternal(SocketInterface socket, ISendContext ctx, AsyncLockToken<Queue<NetEvent>> queueToken)
+        {
+            var queue = queueToken.m_value;
+            var count = queue.Count;
+                
+            while (queue.Count > 0)
+            {                    
+                var ev = queue.Dequeue();
+                await ctx.AddMessage(socket, ev.GetMemory(), queue.Count);
+                ev.ReleaseRef();
+            }
+            await ctx.Flush(socket);
+                
+            return count;
         }
         
         private async ValueTask DisposePendingEvents()
         {
-            using (var token = await m_eventQueue.Get())
-            {
-                m_acceptingEvents = false;
+            using var token = await m_eventQueue.Get();
+            m_acceptingEvents = false;
 
-                while (token.m_value.TryDequeue(out var ev))
-                {
-                    ev.ReleaseRef();
-                }
+            while (token.m_value.TryDequeue(out var ev))
+            {
+                ev.ReleaseRef();
             }
         }
         
