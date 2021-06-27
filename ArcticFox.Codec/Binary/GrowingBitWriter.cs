@@ -12,9 +12,7 @@ namespace ArcticFox.Codec.Binary
         
         private int m_memorySizeInBits => m_memorySize * 8;
 
-        private int m_effectiveByteOffset =>
-            m_writer.m_dataOffset + (m_writer.m_bitPositionInByte != 0 ? 1 : 0); // consider pending bits
-
+        public int m_effectiveByteOffset => m_writer.m_effectiveByteOffset;
         public int m_dataOffset => m_writer.m_dataOffset;
         public uint m_fullBitOffset => m_writer.m_fullBitOffset;
 
@@ -69,6 +67,22 @@ namespace ArcticFox.Codec.Binary
                 Grow();
             }
             m_writer.WriteBits(obj, bitCount);
+        }
+
+        public Span<byte> GetSpanOfNextBytes(int size)
+        {
+            var lengthAfterWrite = m_effectiveByteOffset + size;
+            while (lengthAfterWrite > m_memorySize)
+            {
+                Grow();
+            }
+            return m_writer.GetSpanOfNextBytes(size);
+        }
+        
+        public void WriteBytes(ReadOnlySpan<byte> data)
+        {
+            var outputSpan = GetSpanOfNextBytes(data.Length);
+            data.CopyTo(outputSpan);
         }
 
         private void Grow()

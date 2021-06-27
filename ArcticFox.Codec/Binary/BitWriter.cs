@@ -11,6 +11,7 @@ namespace ArcticFox.Codec.Binary
         private byte m_bitValue;
         public byte m_bitPositionInByte { get; private set; }
 
+        public int m_effectiveByteOffset => m_dataOffset + (m_bitPositionInByte != 0 ? 1 : 0); // consider pending bits
         public byte m_bitsRemainingInCurrentByte => m_bitPositionInByte == 8 ? (byte)8 : (byte)(8 - m_bitPositionInByte);
         public uint m_fullBitOffset => (uint)m_dataOffset * 8u + m_bitPositionInByte;
 
@@ -95,6 +96,19 @@ namespace ArcticFox.Codec.Binary
             m_output[m_dataOffset++] = m_bitValue;
             m_bitPositionInByte = 0;
             m_bitValue = 0;
+        }
+
+        public Span<byte> GetSpanOfNextBytes(int size)
+        {
+            var span = m_output.Slice(m_dataOffset, size);
+            m_dataOffset += size;
+            return span;
+        }
+        
+        public void WriteBytes(ReadOnlySpan<byte> data)
+        {
+            var outputSpan = GetSpanOfNextBytes(data.Length);
+            data.CopyTo(outputSpan);
         }
     }
 }
