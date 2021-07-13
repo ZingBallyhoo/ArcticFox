@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using ArcticFox.Codec;
 using ArcticFox.Net.Batching;
@@ -84,7 +85,12 @@ namespace ArcticFox.Net
                 await m_netEventQueue.BroadcastEvent(ev);
                 return;
             }
-            transform.Input2(ev.GetMemory().Span, m_netEventQueue);
+            
+            object? newEv = null;
+            transform.Input(ev.GetMemory().Span, ref newEv);
+            Debug.Assert(newEv != null);
+            var newNetEv = (NetEvent) newEv;
+            await m_netEventQueue.BroadcastEventOwningCreation(newNetEv);
         }
 
         public virtual async ValueTask DisposeAsync()

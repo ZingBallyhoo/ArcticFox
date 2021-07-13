@@ -10,7 +10,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void TestA()
         {
-            var header = new FixedSizeHeader(4);
+            var header = new FixedSizeHeader<byte>(4);
 
             var buffer = new Span<byte>(new byte[8]);
             BinaryPrimitives.WriteUInt32BigEndian(buffer, 0xDEADBEEF);
@@ -26,7 +26,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void TestSplit()
         {
-            var header = new FixedSizeHeader(4);
+            var header = new FixedSizeHeader<byte>(4);
 
             var buffer = new Span<byte>(new byte[4]);
             BinaryPrimitives.WriteUInt32BigEndian(buffer, 0xDEADBEEF);

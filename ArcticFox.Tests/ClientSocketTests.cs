@@ -19,7 +19,7 @@ namespace ArcticFox.Tests
         public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
             // its ok to pass the span, method runs synchronously
-            TempBroadcasterExtensions.Broadcast(this, input).GetAwaiter().GetResult();
+            TempBroadcasterExtensions.BroadcastBytes(this, input).GetAwaiter().GetResult();
         }
 
         public void Abort()
@@ -46,7 +46,7 @@ namespace ArcticFox.Tests
 
             await using var socket = await host.CreateClientWebSocket<TestSocket>(new Uri("wss://echo.websocket.org"));
 
-            await socket.Broadcast("Hello Echo Bois\0"); // todo: can't send more than 1 \0? it doesn't work
+            await socket.BroadcastZeroTerminatedAscii("Hello Echo Bois\0"); // todo: can't send more than 1 \0? it doesn't work
             await Task.Delay(500); // this is over the internet lol
 
             Assert.Equal(new []{"Hello Echo Bois"}, socket.m_received);
@@ -65,7 +65,7 @@ namespace ArcticFox.Tests
             server.StartAcceptWorker();
 
             await using var socket = await clientHost.CreateClientTCPSocket<TestSocket>(endPoint);
-            await socket.Broadcast("Hello Echo Bois\0");
+            await socket.BroadcastZeroTerminatedAscii("Hello Echo Bois\0");
             
             await Task.Delay(50);
             Assert.Equal(1, await serverHost.GetSocketCount());

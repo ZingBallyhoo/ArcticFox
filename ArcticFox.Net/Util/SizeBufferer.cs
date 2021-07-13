@@ -2,9 +2,9 @@ using System;
 
 namespace ArcticFox.Net.Util
 {
-    public class SizeBufferer
+    public class SizeBufferer<T>
     {
-        private byte[]? m_buffer;
+        private T[]? m_buffer;
         private int m_bufferOffset;
         private int? m_currentSize;
 
@@ -30,17 +30,17 @@ namespace ArcticFox.Net.Util
             return m_currentSize == null;
         }
 
-        private byte[] EnsureBuffer()
+        private T[] EnsureBuffer()
         {
             if (m_currentSize == null) throw new Exception("Recreating buffer while size is not known");
             var size = m_currentSize.Value;
             if (m_buffer != null && m_buffer.Length >= size) return m_buffer;
             if (m_bufferOffset != 0) throw new Exception("Recreating buffer while writing");
-            m_buffer = new byte[size];
+            m_buffer = new T[size];
             return m_buffer;
         }
 
-        public bool ConsumeAndGet(ref ReadOnlySpan<byte> data, out ReadOnlySpan<byte> output)
+        public bool ConsumeAndGet(ref ReadOnlySpan<T> data, out ReadOnlySpan<T> output)
         {
             output = default;
 
@@ -64,19 +64,19 @@ namespace ArcticFox.Net.Util
                 return true;
             }
             var buffer = EnsureBuffer();
-            var writeSlice = new Span<byte>(buffer, currentOffset, currentSize - currentOffset);
+            var writeSlice = new Span<T>(buffer, currentOffset, currentSize - currentOffset);
             readSlice.CopyTo(writeSlice);
             m_bufferOffset += amountToRead;
 
             if (m_bufferOffset == currentSize)
             {
-                output = new ReadOnlySpan<byte>(m_buffer, 0, currentSize);
+                output = new ReadOnlySpan<T>(m_buffer, 0, currentSize);
                 return true;
             }
             return false;
         }
 
-        public bool Consume(ref ReadOnlySpan<byte> data)
+        public bool Consume(ref ReadOnlySpan<T> data)
         {
             return ConsumeAndGet(ref data, out _);
         }

@@ -22,7 +22,7 @@ namespace ArcticFox.Tests
         
         public ValueTask FakeSendEvent(string text)
         {
-            return TempBroadcasterExtensions.Broadcast(this, text.AsSpan());
+            return TempBroadcasterExtensions.BroadcastZeroTerminatedAscii(this, text.AsSpan());
         }
         
         public ValueTask BroadcastEvent(NetEvent ev)
@@ -96,7 +96,7 @@ namespace ArcticFox.Tests
             var filterOwner = new FilterOwner<TestBroadcaster>();
             
             var filter = new FilterBroadcaster<string>(filterOwner.m_kidsExcludeFilterAction, "A");
-            await filter.Broadcast("GGs");
+            await filter.BroadcastZeroTerminatedAscii("GGs");
             
             filterOwner.m_kids["A"].AssertCreated();
             filterOwner.m_kids["B"].AssertCreated("GGs");

@@ -1,6 +1,6 @@
 namespace ArcticFox.Net.Util
 {
-    public class FixedSizeHeader : SizeBufferer
+    public class FixedSizeHeader<T> : SizeBufferer<T>
     {
         public FixedSizeHeader(int size)
         {
