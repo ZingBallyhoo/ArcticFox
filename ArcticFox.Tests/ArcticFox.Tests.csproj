@@ -22,6 +22,9 @@
   <ItemGroup>
     <ProjectReference Include="..\ArcticFox.Codec\ArcticFox.Codec.csproj" />
     <ProjectReference Include="..\ArcticFox.Net\ArcticFox.Net.csproj" />
+
+    <ProjectReference Include="..\ArcticFox.RPC.Generator\ArcticFox.RPC.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\ArcticFox.RPC\ArcticFox.RPC.csproj" />
   </ItemGroup>
 
 </Project>
