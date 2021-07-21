@@ -104,7 +104,7 @@ namespace ArcticFox.Net
 
                 if (DateTime.UtcNow - shutdownStart > TimeSpan.FromSeconds(10))
                 {
-                    m_taskCompletionSource.SetException(new Exception($"SocketHost shutdown timeout. {sockets.m_value.Count} sockets remain"));
+                    m_taskCompletionSource.SetException(new Exception($"SocketHost ({GetType()}) shutdown timeout. {sockets.m_value.Count} sockets remain"));
                     return;
                 }
                 
