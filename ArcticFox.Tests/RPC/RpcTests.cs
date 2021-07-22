@@ -36,7 +36,7 @@ namespace ArcticFox.Tests.RPC
     public class RpcTests
     {
         [Fact]
-        public async Task a()
+        public async Task Test1()
         {
             var endPoint = IPEndPoint.Parse("127.0.0.1:9005");
             

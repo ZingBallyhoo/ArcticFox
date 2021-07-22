@@ -4,6 +4,6 @@ namespace ArcticFox.RPC
 {
     public interface IRpcSocket
     {
-        ValueTask CallRemoteAsync(RpcMethod method, object request, RpcCallback? callback);
+        ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback) where T : class;
     }
 }

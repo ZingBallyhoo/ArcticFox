@@ -12,7 +12,7 @@ using ArcticFox.RPC;
 
 namespace ArcticFox.Tests.RPC
 {
-    public class MyRpcClientSocket  : HighLevelSocket, IRpcSocket, ISpanConsumer<byte>
+    public class MyRpcClientSocket : HighLevelSocket, IRpcSocket, ISpanConsumer<byte>
     {
         private readonly AsyncLockedAccess<Dictionary<uint, RpcCallback>> m_callbacks;
         private readonly IDFactory m_callbackIDFactory;
@@ -59,9 +59,9 @@ namespace ArcticFox.Tests.RPC
             });
         }
 
-        public async ValueTask CallRemoteAsync(RpcMethod method, object request, RpcCallback? callback)
+        public async ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback) where T : class
         {
-            var requestTyped = (ITestRpcMessage) request;
+            var requestTyped = (ITestRpcMessage)request;
             
             uint callbackID = 0;
             if (callback != null)
