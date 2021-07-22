@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Gu.Roslyn.AnalyzerExtensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -77,7 +78,7 @@ namespace ArcticFox.RPC.Generator
             {
                 if (m_type.ToDisplayString().StartsWith("ArcticFox.RPC.TokenPassthroughRpcMethod"))
                 {
-                    return $"\"{m_requestType.ToDisplayString()}\"";
+                    return $"\"{m_requestType.FullName()}\"";
                 } else
                 {
                     return $"\"{m_name}\"";
