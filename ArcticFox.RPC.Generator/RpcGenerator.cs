@@ -76,7 +76,7 @@ namespace ArcticFox.RPC.Generator
 
             public string GetDispatchName()
             {
-                if (m_type.ToDisplayString().StartsWith("ArcticFox.RPC.TokenPassthroughRpcMethod"))
+                if (m_type.ToDisplayString().Contains("TokenPassthrough"))
                 {
                     return $"\"{m_requestType.FullName()}\"";
                 } else
