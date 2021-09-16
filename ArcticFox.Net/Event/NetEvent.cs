@@ -5,7 +5,7 @@ namespace ArcticFox.Net.Event
 {
     public class NetEvent : RefCounted
     {
-        private MemoryOwner<byte> m_memoryOwner;
+        private readonly MemoryOwner<byte> m_memoryOwner;
 
         protected NetEvent(ReadOnlySpan<byte> data)
         {
@@ -27,7 +27,6 @@ namespace ArcticFox.Net.Event
         private void ReleaseBuffer()
         {
             m_memoryOwner.Dispose();
-            m_memoryOwner = MemoryOwner<byte>.Empty;
         }
 
         protected override void Cleanup()
