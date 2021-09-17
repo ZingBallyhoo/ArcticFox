@@ -71,7 +71,7 @@ namespace ArcticFox.SmartFoxServer
             await RemoveFromRoomInternal(room, rooms);
         }
 
-        private async ValueTask RemoveFromRoomInternal(Room room, AsyncLockToken<TypedRoomCollection> rooms)
+        private async ValueTask RemoveFromRoomInternal(Room room, AsyncLockedAccess<TypedRoomCollection>.Token rooms)
         {
             await room.RemoveUser(this);
             rooms.m_value.RemoveRoom(room);

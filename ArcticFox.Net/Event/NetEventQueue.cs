@@ -9,7 +9,7 @@ namespace ArcticFox.Net.Event
 {
     public class NetEventQueue : IBroadcaster, IAsyncDisposable
     {
-        protected readonly AsyncLockedAccess<Queue<NetEvent>> m_eventQueue = new AsyncLockedAccess<Queue<NetEvent>>(new Queue<NetEvent>());
+        protected readonly InterlockedAccess<Queue<NetEvent>> m_eventQueue = new InterlockedAccess<Queue<NetEvent>>(new Queue<NetEvent>());
         private bool m_acceptingEvents = true;
         
         public int m_maxQueueSize = 100;
@@ -33,14 +33,14 @@ namespace ArcticFox.Net.Event
             }
             
             @event.GetRef();
-            queue.Enqueue(@event);
+            queueToken.m_value.Enqueue(@event);
         }
 
         public ValueTask<int> FlushEventsToSocket(SocketInterface socket, ISendContext ctx)
         {
             if (socket.IsClosed()) return ValueTask.FromResult(0);
 
-            using var queueToken = m_eventQueue.GetNoWait();
+            var queueToken = m_eventQueue.TryGet();
             if (queueToken == null)
             {
                 // someone else is holding the lock already, let them finish
@@ -51,16 +51,25 @@ namespace ArcticFox.Net.Event
             return FlushEventsToSocketInternal(socket, ctx, queueToken);
         }
 
-        private async ValueTask<int> FlushEventsToSocketInternal(SocketInterface socket, ISendContext ctx, AsyncLockToken<Queue<NetEvent>> queueToken)
+        private async ValueTask<int> FlushEventsToSocketInternal(SocketInterface socket, ISendContext ctx, InterlockedAccess<Queue<NetEvent>>.Token queueToken)
         {
+            using var _ = queueToken;
+
             var queue = queueToken.m_value;
             var count = queue.Count;
-                
-            while (queue.Count > 0)
-            {                    
-                var ev = queue.Dequeue();
-                await ctx.AddMessage(socket, ev.GetMemory(), queue.Count);
+            var currentCount = count;
+            
+            while (currentCount > 0)
+            {
+                if (!queue.TryDequeue(out var ev))
+                {
+                    // should be impossible....
+                    break;
+                }
+                await ctx.AddMessage(socket, ev.GetMemory(), currentCount);
                 ev.ReleaseRef();
+
+                currentCount--;
             }
             await ctx.Flush(socket);
                 

@@ -59,7 +59,7 @@ namespace ArcticFox.SmartFoxServer
             return user == null;
         }
 
-        internal async ValueTask AddUser(User user, AsyncLockToken<TypedRoomCollection> userRooms)
+        internal async ValueTask AddUser(User user, AsyncLockedAccess<TypedRoomCollection>.Token userRooms)
         {
             using (var users = await m_users.Get())
             {
