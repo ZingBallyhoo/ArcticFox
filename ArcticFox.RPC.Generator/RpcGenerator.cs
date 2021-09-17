@@ -76,7 +76,7 @@ namespace ArcticFox.RPC.Generator
 
             public string GetDispatchName()
             {
-                if (m_type.ToDisplayString().StartsWith("ArcticFox.RPC.TokenPassthroughRpcMethod"))
+                if (m_type.ToDisplayString().Contains("TokenPassthrough"))
                 {
                     return $"\"{m_requestType.FullName()}\"";
                 } else
@@ -175,6 +175,10 @@ namespace ArcticFox.RPC.Generator
             writer.WriteLine($"public class {classGenInfo.m_symbol.Name}_Remote : {classGenInfo.m_symbol.Name}<IRpcSocket>");
             writer.WriteLine("{");
             writer.Indent++;
+            
+            writer.WriteLine($"public static readonly {classGenInfo.m_symbol.Name}_Remote Instance = new();");
+            writer.WriteLine();
+            
             foreach (var method in classGenInfo.m_methods)
             {
                 writer.Write("public override ValueTask");
