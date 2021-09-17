@@ -100,6 +100,7 @@ namespace ArcticFox.Tests.RPC
             
             Assert.Throws<ArgumentNullException>(() => MyService.OneMethod.DecodeResponse(ReadOnlySpan<byte>.Empty, null));
             Assert.Throws<ArgumentNullException>(() => MyService.TwoMethod.DecodeResponse(ReadOnlySpan<byte>.Empty, null));
+            Assert.Throws<ArgumentNullException>(() => MyService.FourMethod.DecodeResponse(ReadOnlySpan<byte>.Empty, null));
         }
     }
 }
