@@ -18,13 +18,6 @@ namespace ArcticFox.Net.Sockets
             m_host = host;
             m_endPoint = endPoint;
             m_listenerSocket = new Socket(m_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-            m_host.GetCancellationToken().Register(() =>
-            {
-                m_listenerSocket.Dispose();
-            });
-            // lines above abort the listen on token cancel
-            // https://github.com/dotnet/runtime/issues/33418 states AcceptAsync(token) was implemented in #40750? it wasn't
         }
 
         public void StartAcceptWorker()
@@ -34,6 +27,8 @@ namespace ArcticFox.Net.Sockets
         
         public async Task AcceptWorker()
         {
+            var cancellationToken = m_host.GetCancellationToken();
+
             m_listenerSocket.Bind(m_endPoint);  
             m_listenerSocket.Listen(100);
 
@@ -41,13 +36,14 @@ namespace ArcticFox.Net.Sockets
             {
                 while (m_host.IsRunning())
                 {
-                    var sockIt = await m_listenerSocket.AcceptAsync();
+                    var sockIt = await m_listenerSocket.AcceptAsync(cancellationToken);
                     var tcpSocket = new TcpSocket(sockIt);
                     var highLevel = m_host.CreateHighLevelSocket(tcpSocket);
                     await m_host.AddSocket(highLevel);
                 }
             } finally
             {
+                m_listenerSocket.Dispose();
                 m_shutDown = true;
             }
         }
