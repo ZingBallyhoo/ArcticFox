@@ -112,7 +112,7 @@ namespace ArcticFox.RPC.Generator
                     if (!classes.TryGetValue(classSymbol, out var classGenInfo))
                     {
                         classGenInfo = new ClassGenInfo(classSymbol);
-                        classes[classSymbol] = classGenInfo;
+                        classes.Add(classSymbol, classGenInfo);;
                     }
                     
                     classGenInfo.m_methods.Add(new MethodGenInfo(rpcMethodType, rpcMethodName));

@@ -21,8 +21,8 @@ namespace ArcticFox.SmartFoxServer
         public static int NewType(string name)
         {
             var id = (int)s_typeIdFactory.Next();
-            s_names[id] = name;
-            s_defaultNameFactories[id] = new IDFactory();
+            s_names.Add(id, name);
+            s_defaultNameFactories.Add(id, new IDFactory());
             return id;
         }
 

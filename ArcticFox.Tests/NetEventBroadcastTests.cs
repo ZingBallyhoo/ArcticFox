@@ -47,12 +47,12 @@ namespace ArcticFox.Tests
         public FilterOwner()
         {
             m_kids = new Dictionary<string, T>();
-            m_kids["A"] = new T();
-            m_kids["B"] = new T();
-            m_kids["D"] = new T();
-            m_kids["E"] = new T();
-            m_kids["F"] = new T();
-            m_kids["G"] = new T();
+            m_kids.Add("A", new T());
+            m_kids.Add("B", new T());
+            m_kids.Add("D", new T());
+            m_kids.Add("E", new T());
+            m_kids.Add("F", new T());
+            m_kids.Add("G", new T());
 
             for (var i = 0; i < 1000; i++)
             {

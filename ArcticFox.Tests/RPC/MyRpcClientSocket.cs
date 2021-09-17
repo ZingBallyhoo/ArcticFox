@@ -70,7 +70,7 @@ namespace ArcticFox.Tests.RPC
                 Debug.Assert(callbackIDLong <= uint.MaxValue);
                 callbackID = (uint) callbackIDLong;
                 using var callbacks = await m_callbacks.Get();
-                callbacks.m_value[callbackID] = callback;
+                callbacks.m_value.Add(callbackID, callback);;
             }
             await SendRequest(callbackID, requestTyped);
         }
