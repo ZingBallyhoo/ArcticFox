@@ -110,5 +110,34 @@ namespace ArcticFox.Codec.Binary
             var outputSpan = GetSpanOfNextBytes(data.Length);
             data.CopyTo(outputSpan);
         }
+        
+        public void SeekByte(uint position) => SeekBit(position * 8);
+
+        public void SeekBit(uint position)
+        {
+            if (position == m_fullBitOffset)
+            {
+                // already at right pos
+                return;
+            }
+            
+            var bytePos = position >> 3;
+            if (bytePos == m_dataOffset)
+            {
+                throw new NotImplementedException("opt: already in right byte");
+            }
+
+            FlushBit();
+            
+            var bitPos = position - (bytePos << 3);
+            
+            m_dataOffset = (int)bytePos;
+
+            if (bitPos != 0)
+            {
+                m_bitValue = m_output[m_dataOffset];
+                m_bitPositionInByte = (byte)bitPos;
+            }
+        }
     }
 }

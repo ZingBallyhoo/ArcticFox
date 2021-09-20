@@ -101,6 +101,9 @@ namespace ArcticFox.Codec.Binary
             m_memory = newMemory;
             m_writer = newWriter; // preserve bit pos etc
         }
+        
+        public void SeekByte(uint position) => m_writer.SeekByte(position);
+        public void SeekBit(uint position) => m_writer.SeekBit(position);
 
         public void Dispose()
         {
