@@ -1,6 +1,6 @@
 using System;
 using System.Buffers.Binary;
-using ArcticFox.Net.Util;
+using ArcticFox.Codec;
 using Xunit;
 
 namespace ArcticFox.Tests

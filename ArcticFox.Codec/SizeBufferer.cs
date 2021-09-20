@@ -1,6 +1,6 @@
 using System;
 
-namespace ArcticFox.Net.Util
+namespace ArcticFox.Codec
 {
     public class SizeBufferer<T>
     {

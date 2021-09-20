@@ -1,4 +1,4 @@
-namespace ArcticFox.Net.Util
+namespace ArcticFox.Codec
 {
     public class FixedSizeHeader<T> : SizeBufferer<T>
     {
