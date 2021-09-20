@@ -119,21 +119,28 @@ namespace ArcticFox.Codec.Binary
             }
             
             var bytePos = position >> 3;
-            if (bytePos == m_dataOffset)
-            {
-                throw new NotImplementedException("opt: already in right byte");
-            }
-            
-            ClearBit();
-            
             var bitPos = position - (bytePos << 3);
             
+            if (bytePos > m_dataLength)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            
+            if (bytePos == m_dataOffset-1 && !m_notReadingBits && bitPos != 0)
+            {
+                m_bitPositionInByte = (byte)bitPos;
+                return;
+            }
+            
             m_dataOffset = (int)bytePos;
-
+            
             if (bitPos != 0)
             {
                 FetchNextBits();
                 m_bitPositionInByte = (byte)bitPos;
+            } else
+            {
+                ClearBit();
             }
         }
     }

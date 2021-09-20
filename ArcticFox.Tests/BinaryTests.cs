@@ -136,5 +136,81 @@ namespace ArcticFox.Tests
             Assert.Equal(123ul, reader.ReadUInt64BigEndian());
             Assert.Equal(123ul, reader.ReadUInt64LittleEndian());
         }
+
+        [Fact]
+        public void ReaderSeek()
+        {
+            var reader = new BitReader(new byte[] {0xFF, 0xFF, 0xFF, 0xFF});
+            
+            Assert.Equal(uint.MaxValue, reader.ReadUInt32BigEndian());
+            
+            reader.SeekByte(0);
+            Assert.Equal(uint.MaxValue, reader.ReadUInt32BigEndian());
+            
+            reader.SeekBit(0);
+            Assert.Equal(uint.MaxValue, reader.ReadUInt32BigEndian());
+            
+            reader.SeekByte(1);
+            Assert.Equal(1, reader.m_dataOffset);
+
+            for (var i = 0u; i < 32; i++)
+            {
+                reader.SeekBit(i);
+                Assert.Equal(i, reader.m_fullBitOffset);
+            }
+            
+            reader.SeekBit(5);
+            Assert.Equal(0x7FFFFFFu, reader.ReadBits<uint>(27));
+            Assert.Equal(32u, reader.m_fullBitOffset);
+        }
+        
+        [Fact]
+        public void WriterSeek()
+        {
+            var writer = new BitWriter(new byte[4]);
+            
+            writer.WriteBit(true);
+            writer.SeekBit(0);
+            writer.WriteBit(false);
+            writer.FlushBit();
+            Assert.Equal(0, writer.m_output[0]);
+            Assert.Equal(0, writer.m_output[1]);
+            Assert.Equal(0, writer.m_output[2]);
+            Assert.Equal(0, writer.m_output[3]);
+            
+            writer.SeekBit(0);
+            writer.WriteBit(true);
+            writer.FlushBit(); // flush
+            writer.SeekBit(0); // rewrind into flushed
+            writer.WriteBit(false);
+            writer.FlushBit();
+            Assert.Equal(0, writer.m_output[0]);
+            Assert.Equal(0, writer.m_output[1]);
+            Assert.Equal(0, writer.m_output[2]);
+            Assert.Equal(0, writer.m_output[3]);
+            
+            writer.SeekBit(0);
+            writer.WriteBit(true);
+            writer.FlushBit();
+            Assert.Equal(1, writer.m_output[0]);
+            Assert.Equal(0, writer.m_output[1]);
+            Assert.Equal(0, writer.m_output[2]);
+            Assert.Equal(0, writer.m_output[3]);
+            
+            
+            writer.SeekBit(12);
+            writer.WriteBit(true);
+            
+            writer.SeekByte(2);
+            writer.WriteByte(0x12);
+
+            var reader = new BitReader(writer.m_output);
+            reader.SeekBit(11);
+            Assert.False(reader.ReadBit());
+            Assert.True(reader.ReadBit());
+            
+            reader.SeekByte(2);
+            Assert.Equal(0x12, reader.ReadByte());
+        }
     }
 }

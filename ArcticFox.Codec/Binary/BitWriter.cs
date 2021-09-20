@@ -7,6 +7,7 @@ namespace ArcticFox.Codec.Binary
     {
         public readonly Span<byte> m_output;
         public int m_dataOffset { get; private set; }
+        public int m_dataLength => m_output.Length;
 
         private byte m_bitValue;
         public byte m_bitPositionInByte { get; private set; }
@@ -122,15 +123,20 @@ namespace ArcticFox.Codec.Binary
             }
             
             var bytePos = position >> 3;
-            if (bytePos == m_dataOffset)
+            var bitPos = position - (bytePos << 3);
+
+            if (bytePos > m_dataLength)
             {
-                throw new NotImplementedException("opt: already in right byte");
+                throw new IndexOutOfRangeException();
+            }
+            
+            if (bytePos == m_dataOffset-1 && m_bitPositionInByte != 0 && bitPos != 0)
+            {
+                m_bitPositionInByte = (byte)bitPos;
+                return;
             }
 
             FlushBit();
-            
-            var bitPos = position - (bytePos << 3);
-            
             m_dataOffset = (int)bytePos;
 
             if (bitPos != 0)
