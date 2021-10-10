@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace ArcticFox.Codec.Binary
 {
@@ -72,21 +75,93 @@ namespace ArcticFox.Codec.Binary
                 var bitsCanRead = buffer.m_bitsRemainingInCurrentByte;
                 var bitsCanWrite = m_bitsRemainingInCurrentByte;
 
-                var bitsThisOperation = (byte)Math.Min(bitCount, Math.Min(bitsCanRead, bitsCanWrite));
-                Debug.Assert(bitsThisOperation != 0);
+                var maxBitsToReadGivenAlignment = (byte)Math.Min(bitCount, Math.Min(bitsCanRead, bitsCanWrite));
+                Debug.Assert(maxBitsToReadGivenAlignment > 0);
 
-                if (bitsThisOperation == 8)
+                if (maxBitsToReadGivenAlignment == 8)
                 {
+                    // we can blit the data directly into the output
+                    
                     var bytesThisOperation = bitCount >> 3;
                     buffer.ReadBytesTo(m_output.Slice(m_dataOffset), (int)bytesThisOperation);
                     m_dataOffset += (int)bytesThisOperation;
                     bitCount -= bytesThisOperation * 8;
                     continue;
                 }
-                var readBits = buffer.ReadBitsFromCurrent(bitsThisOperation);
-                WriteBitsToCurrent(readBits, bitsThisOperation);
 
-                bitCount -= bitsThisOperation;
+                if (bitsCanRead == 8 && bitCount >= 16)
+                {
+                    // the reader is currently aligned to a byte boundary
+                    // 1. load as much data as we can shift in one operation
+                    // 2. align the writer using the start bits of what we read
+                    // 3. shift away the start bits
+                    // 4. blit as much as we can between the 2 aligned streams (recurse into this func)
+                    // 5. Read/WriteBitsFromCurrent the remaining bits (recurse into this func)
+                    
+                    Debug.Assert(buffer.m_notReadingBits); // reader should be aligned
+                    Debug.Assert(m_bitPositionInByte != 0); // writer should not be aligned (or above path would be used)
+
+                    byte maxByteCount;
+                    if (Sse2.IsSupported)
+                    {
+                        maxByteCount = (byte)Vector128<byte>.Count;
+                    }
+                    else
+                    {
+                        maxByteCount = sizeof(ulong);
+                    }
+                    var vectorBytesToRead = Math.Min(bitCount >> 3, maxByteCount);
+                    var bitsToReadAsVector = vectorBytesToRead * 8;
+                    
+                    unsafe
+                    {
+                        var vector = Vector128<ulong>.Zero;
+                        var vectorSpan = new Span<byte>(&vector, maxByteCount);
+                        buffer.ReadBytesTo(vectorSpan, (int)vectorBytesToRead);
+                        
+                        var startBitsReader = new BitReader(vectorSpan);
+                        var startBits = startBitsReader.ReadBitsFromCurrent(maxBitsToReadGivenAlignment);
+                        WriteBitsToCurrent(startBits, maxBitsToReadGivenAlignment);
+                        
+                        // we have now aligned the writer to a byte boundary
+                        Debug.Assert(m_bitPositionInByte == 0);
+
+                        // remove the bits we've already written
+                        if (Sse2.IsSupported)
+                        {
+                            // https://mischasan.wordpress.com/2012/12/26/sse2-bit-shift/
+                            // https://mischasan.wordpress.com/2013/04/07/the-c-preprocessor-not-as-cryptic-as-youd-think/
+
+                            var alreadyReadBits = startBitsReader.m_bitPositionInByte;
+                            var otherShift = (byte)(64 - alreadyReadBits);
+                            
+                            vector = Sse2.Or(
+                                Sse2.ShiftRightLogical(vector, alreadyReadBits),
+                                Sse2.ShiftLeftLogical(Sse2.ShiftRightLogical128BitLane(vector, 8),
+                                    otherShift));
+                        }
+                        else
+                        {
+                            ref var e0 = ref Unsafe.As<Vector128<ulong>, ulong>(ref vector);
+                            e0 >>= startBitsReader.m_bitPositionInByte;
+                        }
+                        
+                        // blit n bytes, then Read/WriteBitsFromCurrent remainder
+                        var blitReader = new BitReader(vectorSpan);
+                        WriteBits(ref blitReader, bitsToReadAsVector-maxBitsToReadGivenAlignment);
+                    }
+
+                    bitCount -= bitsToReadAsVector;
+                    continue;
+                }
+
+                // read what as much as we can in one operation. 2 operations = 8 bits
+                // each operation alternates size
+                // e.g 1, 7, 1, 7 or 5, 3, 5, 3
+                var readBits = buffer.ReadBitsFromCurrent(maxBitsToReadGivenAlignment);
+                WriteBitsToCurrent(readBits, maxBitsToReadGivenAlignment);
+
+                bitCount -= maxBitsToReadGivenAlignment;
             }
         }
 

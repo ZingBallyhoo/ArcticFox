@@ -48,6 +48,44 @@ namespace ArcticFox.Tests
             Assert.Equal(0xFFFFFFFF, reader.ReadBits<uint>(32)); // bits 1 to 33
             Assert.Equal(0, reader.ReadBits<byte>(7));
         }
+        
+        [Fact]
+        public void ExactValueIsPreserved()
+        {
+            const uint cookie = 1234567891;
+            
+            var writer = new BitWriter(new byte[1+sizeof(uint)+sizeof(ulong)+4*sizeof(ulong)]);
+            writer.WriteBit(false);
+            writer.WriteBits(cookie, 32);
+            writer.WriteBits<ulong>(cookie, 64);
+            writer.WriteBits<CookieStruct>(new CookieStruct
+            {
+                m_cookie1 = cookie,
+                m_cookie2 = cookie,
+                m_cookie3 = cookie,
+                m_cookie4 = cookie
+            }, 64*4);
+            writer.FlushBit();
+
+            var reader = new BitReader(writer.m_output);
+            Assert.False(reader.ReadBit());
+            Assert.Equal(cookie, reader.ReadBits<uint>(32));
+            Assert.Equal(cookie, reader.ReadBits<ulong>(64));
+
+            var cookieStruct = reader.ReadBits<CookieStruct>(64 * 4);
+            Assert.Equal(cookie, cookieStruct.m_cookie1);
+            Assert.Equal(cookie, cookieStruct.m_cookie2);
+            Assert.Equal(cookie, cookieStruct.m_cookie3);
+            Assert.Equal(cookie, cookieStruct.m_cookie4);
+        }
+
+        private struct CookieStruct
+        {
+            public ulong m_cookie1;
+            public ulong m_cookie2;
+            public ulong m_cookie3;
+            public ulong m_cookie4;
+        }
 
         [Fact]
         public void GrowableCanHandleWriteBits()

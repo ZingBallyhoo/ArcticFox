@@ -12,7 +12,7 @@ namespace ArcticFox.Codec.Binary
         private byte m_bitValue;
         public byte m_bitPositionInByte { get; private set; }
 
-        private bool m_notReadingBits => m_bitPositionInByte == 8;
+        public bool m_notReadingBits => m_bitPositionInByte == 8;
 
         public byte m_bitsRemainingInCurrentByte => m_bitPositionInByte == 8 ? (byte)8 : (byte)(8 - m_bitPositionInByte);
         public uint m_fullBitOffset => (uint)m_dataOffset * 8u - (m_notReadingBits ? 0u : m_bitsRemainingInCurrentByte);
