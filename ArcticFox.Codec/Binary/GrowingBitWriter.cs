@@ -16,11 +16,16 @@ namespace ArcticFox.Codec.Binary
         public int m_dataOffset => m_writer.m_dataOffset;
         public uint m_fullBitOffset => m_writer.m_fullBitOffset;
 
-        public GrowingBitWriter(int _)
+        private GrowingBitWriter(int _)
         {
             m_memorySize = 1024;
             m_memory = MemoryOwner<byte>.Allocate(m_memorySize);
             m_writer = new BitWriter(m_memory.Memory.Span);
+        }
+
+        public static GrowingBitWriter Create()
+        {
+            return new GrowingBitWriter(0);
         }
         
         public ReadOnlyMemory<byte> GetData()

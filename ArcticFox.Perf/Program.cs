@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Event;
+using BenchmarkDotNet.Running;
 
 namespace ArcticFox.Perf
 {
@@ -12,6 +13,16 @@ namespace ArcticFox.Perf
             Console.WriteLine("Hello World!");
             //BenchmarkRunner.Run<BroadcastFilter>();
             //BenchmarkRunner.Run<SemaBench>();
+            //BenchmarkRunner.Run<BinaryPerf>();
+
+            var binPerf = new BinaryPerf();
+            binPerf.m_offset = 1;
+            binPerf.GlobalSetup();
+
+            for (var i = 0; i < 100000; i++)
+            {
+                binPerf.ReadAsSingles();
+            }
 
             // await SendPerfTest();
         }

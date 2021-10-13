@@ -8,7 +8,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void GrowableBufferHandlesDanglingByte()
         {
-            using var growableBuffer = new GrowingBitWriter(0);
+            using var growableBuffer = GrowingBitWriter.Create();
             growableBuffer.WriteInt32LittleEndian(100);
             
             growableBuffer.WriteBit(true); // 1
@@ -90,7 +90,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void GrowableCanHandleWriteBits()
         {
-            using var growable = new GrowingBitWriter(0);
+            using var growable = GrowingBitWriter.Create();
             for (var i = 0; i < 1024; i++)
             {
                 growable.WriteByte(0);
@@ -110,7 +110,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void WillNotGrowOnBoundary()
         {
-            using var writer = new GrowingBitWriter(0);
+            using var writer = GrowingBitWriter.Create();
             for (var i = 0; i < 1024-8; i++)
             {
                 writer.WriteByte(0);
@@ -122,7 +122,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void WillGrowOverBoundary()
         {
-            using var writer = new GrowingBitWriter(0);
+            using var writer = GrowingBitWriter.Create();
             for (var i = 0; i < 1024-7; i++)
             {
                 writer.WriteByte(0);
@@ -134,7 +134,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void AllTheTypes()
         {
-            using var writer = new GrowingBitWriter(0);
+            using var writer = GrowingBitWriter.Create();
             writer.WriteByte(123);
             writer.WriteSByte(-123);
             writer.WriteDoubleBigEndian(123);
