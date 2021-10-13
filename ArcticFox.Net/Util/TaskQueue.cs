@@ -6,7 +6,7 @@ namespace ArcticFox.Net.Util
 {
     public class TaskQueue
     {
-        private Channel<Func<ValueTask>> m_channel;
+        private readonly Channel<Func<ValueTask>> m_channel;
         
         public TaskQueue()
         {

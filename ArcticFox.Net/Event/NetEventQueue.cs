@@ -51,7 +51,7 @@ namespace ArcticFox.Net.Event
             return FlushEventsToSocketInternal(socket, ctx, queueToken);
         }
 
-        private async ValueTask<int> FlushEventsToSocketInternal(SocketInterface socket, ISendContext ctx, InterlockedAccess<Queue<NetEvent>>.Token queueToken)
+        private static async ValueTask<int> FlushEventsToSocketInternal(SocketInterface socket, ISendContext ctx, InterlockedAccess<Queue<NetEvent>>.Token queueToken)
         {
             using var _ = queueToken;
 

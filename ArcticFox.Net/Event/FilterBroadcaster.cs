@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 
 namespace ArcticFox.Net.Event
 {
-    public struct FilterBroadcaster<TState> : IBroadcaster
+    public readonly struct FilterBroadcaster<TState> : IBroadcaster
     {
         private readonly Func<NetEvent, TState, ValueTask> m_filter;
-        private TState m_current;
+        private readonly TState m_current;
 
         public FilterBroadcaster(Func<NetEvent, TState, ValueTask> filter, TState filterParam)
         {

@@ -6,7 +6,7 @@ namespace ArcticFox.Codec
 {
     public class CodecChain : IDisposable
     {
-        private List<IDisposable> m_disposableCodecs;
+        private readonly List<IDisposable> m_disposableCodecs;
 
         private object? m_head;
         private object? m_tail;

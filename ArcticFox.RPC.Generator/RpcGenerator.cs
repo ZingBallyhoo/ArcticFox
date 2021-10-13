@@ -47,8 +47,8 @@ namespace ArcticFox.RPC.Generator
             public readonly INamedTypeSymbol m_type;
             public readonly string m_name;
 
-            public INamedTypeSymbol m_requestType;
-            public INamedTypeSymbol? m_responseType;
+            public readonly INamedTypeSymbol m_requestType;
+            public readonly INamedTypeSymbol? m_responseType;
 
             public MethodGenInfo(INamedTypeSymbol type, string name)
             {
@@ -88,7 +88,7 @@ namespace ArcticFox.RPC.Generator
 
         private static void ExecuteInternal(GeneratorExecutionContext context)
         {
-            if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+            if (context.SyntaxReceiver is not SyntaxReceiver receiver)
                 return;
             
             var compilation = context.Compilation;
@@ -101,7 +101,7 @@ namespace ArcticFox.RPC.Generator
             {
                 var model = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
 
-                var classSymbol = (INamedTypeSymbol)ModelExtensions.GetDeclaredSymbol(model, classDeclaration)!;
+                var classSymbol = (INamedTypeSymbol)model.GetDeclaredSymbol(classDeclaration)!;
                 foreach (var attribute in classSymbol.GetAttributes())
                 {
                     if (!SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, methodAttributeSymbol)) continue;

@@ -117,18 +117,14 @@ namespace ArcticFox.Net
 
         public async ValueTask<int> GetSocketCount()
         {
-            using (var sockets = await m_sockets.Get())
-            {
-                return sockets.m_value.Count;
-            }
+            using var sockets = await m_sockets.Get();
+            return sockets.m_value.Count;
         }
 
         public async ValueTask<IReadOnlyList<HighLevelSocket>> GetSockets()
         {
-            using (var sockets = await m_sockets.Get())
-            {
-                return sockets.m_value.ToArray();
-            }
+            using var sockets = await m_sockets.Get();
+            return sockets.m_value.ToArray();
         }
 
         public async ValueTask AddSocket(HighLevelSocket socket)
@@ -167,10 +163,8 @@ namespace ArcticFox.Net
                 hl.m_taskQueue.Complete();
                 await DestroySocket(hl);
 
-                using (var sockets = await m_sockets.Get())
-                {
-                    sockets.m_value.Remove(hl);
-                }
+                using var sockets = await m_sockets.Get();
+                sockets.m_value.Remove(hl);
             }
         }
 
