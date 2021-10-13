@@ -18,34 +18,39 @@ using ArcticFox.Net.Sockets;
         public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
             var reader = new BitReader(input);
-            var methodID = reader.ReadUInt32LittleEndian();
-            var requestID = reader.ReadUInt32LittleEndian();
+            while (reader.m_dataOffset < reader.m_dataLength)
+            {
+                var methodID = reader.ReadUInt32LittleEndian();
+                var requestID = reader.ReadUInt32LittleEndian();
             
-            ITestRpcMessage request = methodID switch
-            {
-                1 => new Request1(),
-                2 => new Request2(),
-                3 => new Request3(),
-                4 => new Request4(),
-                _ => throw new InvalidDataException($"unknown message {methodID}")
-            };
+                Console.Out.WriteLine($"recv: {methodID} {requestID}");
+            
+                ITestRpcMessage request = methodID switch
+                {
+                    1 => new Request1(),
+                    2 => new Request2(),
+                    3 => new Request3(),
+                    4 => new Request4(),
+                    _ => throw new InvalidDataException($"unknown message {methodID}")
+                };
 
-            m_taskQueue.Enqueue(async () =>
-            {
-                var resolvedServiceImpl = new MyService_Server();
-                object? response;
-                try
+                m_taskQueue.Enqueue(async () =>
                 {
-                    response = await resolvedServiceImpl.InvokeMethodHandler(this, request.GetType().FullName!, ReadOnlySpan<byte>.Empty, request);
-                } catch
-                {
-                    if (requestID != 0) await SendResponse(requestID, new ErrorResponse());
-                    return;
-                }
+                    var resolvedServiceImpl = new MyService_Server();
+                    object? response;
+                    try
+                    {
+                        response = await resolvedServiceImpl.InvokeMethodHandler(this, request.GetType().FullName!, ReadOnlySpan<byte>.Empty, request);
+                    } catch
+                    {
+                        if (requestID != 0) await SendResponse(requestID, new ErrorResponse());
+                        return;
+                    }
                 
-                if (response == null || requestID == 0) return;
-                await SendResponse(requestID, (ITestRpcMessage)response);
-            });
+                    if (response == null || requestID == 0) return;
+                    await SendResponse(requestID, (ITestRpcMessage)response);
+                });
+            }
         }
 
         private ValueTask SendResponse(uint requestID, ITestRpcMessage response)

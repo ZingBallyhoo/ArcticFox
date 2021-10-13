@@ -6,8 +6,8 @@ namespace ArcticFox.RPC
     public class RpcCallback
     {
         private readonly IResponseDecoder m_decoder;
-        public readonly TaskCompletionSource<object>? m_tcs;
-        public readonly Func<object, ValueTask>? m_func;
+        private readonly TaskCompletionSource<object>? m_tcs;
+        private readonly Func<object, ValueTask>? m_func;
         
         public RpcCallback(IResponseDecoder decoder, Func<object, ValueTask>? func)
         {

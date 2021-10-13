@@ -28,35 +28,40 @@ namespace ArcticFox.Tests.RPC
         public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
             var reader = new BitReader(input);
-            var methodID = reader.ReadUInt32LittleEndian();
-            var requestID = reader.ReadUInt32LittleEndian();
-            
-            ITestRpcMessage response = methodID switch
-            {
-                10001 => new Response1(),
-                10002 => new Response2(),
-                10004 => new Response4(),
-                20000 => new ErrorResponse(),
-                _ => throw new InvalidDataException($"unknown message {methodID}")
-            };
-            
-            m_taskQueue.Enqueue(async () =>
-            {
-                RpcCallback callback;
-                using (var callbacks = await m_callbacks.Get())
-                {
-                    callback = callbacks.m_value[requestID];
-                    callbacks.m_value.Remove(requestID);
-                }
 
-                if (response is ErrorResponse)
+            while (reader.m_dataOffset < reader.m_dataLength)
+            {
+                var methodID = reader.ReadUInt32LittleEndian();
+                var requestID = reader.ReadUInt32LittleEndian();
+
+                ITestRpcMessage response = methodID switch
                 {
-                    callback.SetException(new Exception());
-                } else
+                    10001 => new Response1(),
+                    10002 => new Response2(),
+                    10004 => new Response4(),
+                    20000 => new ErrorResponse(),
+                    _ => throw new InvalidDataException($"unknown message {methodID}")
+                };
+
+                m_taskQueue.Enqueue(async () =>
                 {
-                    await callback.Process(ReadOnlySpan<byte>.Empty, response);
-                }
-            });
+                    RpcCallback callback;
+                    using (var callbacks = await m_callbacks.Get())
+                    {
+                        callback = callbacks.m_value[requestID];
+                        callbacks.m_value.Remove(requestID);
+                    }
+
+                    if (response is ErrorResponse)
+                    {
+                        callback.SetException(new Exception());
+                    }
+                    else
+                    {
+                        await callback.Process(ReadOnlySpan<byte>.Empty, response);
+                    }
+                });
+            }
         }
 
         public async ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback) where T : class
@@ -77,10 +82,12 @@ namespace ArcticFox.Tests.RPC
         
         private ValueTask SendRequest(uint requestID, ITestRpcMessage request)
         {
+            Console.Out.WriteLine($"send: {request.GetID()} {requestID}");
+            
             var writer = new BitWriter(new byte[8]);
             writer.WriteUInt32LittleEndian(request.GetID());
             writer.WriteUInt32LittleEndian(requestID);
-            return TempBroadcasterExtensions.BroadcastBytes(this, writer.m_output);
+            return this.BroadcastBytes(writer.m_output);
         }
 
         public void Abort()

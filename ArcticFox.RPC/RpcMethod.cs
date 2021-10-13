@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ArcticFox.RPC
@@ -32,13 +33,26 @@ namespace ArcticFox.RPC
     {
         protected RpcMethod(string serviceName, string methodName) : base(serviceName, methodName)
         { }
-    
-        public async ValueTask<TResp> Call(IRpcSocket rpcSocket, TReq request)
+        
+        private async ValueTask<TaskCompletionSource<object>> CallCore(IRpcSocket rpcSocket, TReq request)
         {
             var tcs = new TaskCompletionSource<object>();
             var callback = new RpcCallback(this, tcs);
             await rpcSocket.CallRemoteAsync(this, request, callback);
-            var response = (TResp)await tcs.Task;
+            return tcs;
+        }
+    
+        public async ValueTask<TResp> Call(IRpcSocket rpcSocket, TReq request, CancellationToken cancellationToken=default)
+        {
+            var tcs = await CallCore(rpcSocket, request);
+            var response = (TResp)await tcs.Task.WaitAsync(cancellationToken);
+            return response;
+        }
+        
+        public async ValueTask<TResp> Call(IRpcSocket rpcSocket, TReq request, TimeSpan timeout, CancellationToken cancellationToken=default)
+        {
+            var tcs = await CallCore(rpcSocket, request);
+            var response = (TResp)await tcs.Task.WaitAsync(timeout, cancellationToken);
             return response;
         }
 
