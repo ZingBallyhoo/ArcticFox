@@ -64,7 +64,7 @@ namespace ArcticFox.Tests
             using var server = new TcpServer(serverHost, endPoint);
             server.StartAcceptWorker();
 
-            await using var socket = await clientHost.CreateClientTCPSocket<TestSocket>(endPoint);
+            await using var socket = await clientHost.CreateClientTcpSocket<TestSocket>(endPoint);
             await socket.BroadcastZeroTerminatedAscii("Hello Echo Bois\0");
             
             await Task.Delay(50);

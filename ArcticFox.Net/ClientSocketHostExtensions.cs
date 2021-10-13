@@ -20,7 +20,7 @@ namespace ArcticFox.Net
             return (T)hl;
         }
         
-        public static async ValueTask<T> CreateClientTCPSocket<T>(this SocketHost host, EndPoint endPoint) where T : HighLevelSocket
+        public static async ValueTask<T> CreateClientTcpSocket<T>(this SocketHost host, EndPoint endPoint) where T : HighLevelSocket
         {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             await socket.ConnectAsync(endPoint);
