@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
 
 namespace ArcticFox.Codec.Binary
 {
@@ -75,16 +77,29 @@ namespace ArcticFox.Codec.Binary
             var remainingBits = 8 - m_bitPositionInByte;
             Debug.Assert(remainingBits >= count);
 
-            var remainingBitsMask = (byte)(0b11111111 << m_bitPositionInByte);
-            var bitsToReadMask = (byte) (0b11111111 >> (byte)(remainingBits - count));
-            var val = (byte)(m_bitValue & remainingBitsMask & bitsToReadMask);
-            
-            val >>= m_bitPositionInByte;
+            var val = ExtractBitRange(m_bitValue, m_bitPositionInByte, count);
             m_bitPositionInByte += count;
             
             Debug.Assert(m_bitPositionInByte <= 8);
 
             return val;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte ExtractBitRange(byte value, byte start, byte length)
+        {
+            // todo: is this faster in all cases?
+            if (Bmi1.IsSupported)
+            {
+                return (byte)Bmi1.BitFieldExtract(value, start, length);
+            }
+
+            // few more instructions... idk
+            // var val = (byte)(value >> start);
+            // val &= (byte)((byte)(1 << length) - 1);
+            // return val;
+            
+            return (byte)((value >> start) & (byte)((1u << length) - 1u));
         }
 
         public unsafe T ReadBits<T>(uint bitCount) where T : unmanaged
