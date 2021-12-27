@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 
 namespace ArcticFox.Net.Util
@@ -9,6 +10,13 @@ namespace ArcticFox.Net.Util
         public ulong Next()
         {
             return (ulong)Interlocked.Increment(ref m_currId);
+        }
+        
+        public uint Next32()
+        {
+            var longID = Next();
+            Debug.Assert(longID <= uint.MaxValue);
+            return (uint)longID;
         }
     }
 }

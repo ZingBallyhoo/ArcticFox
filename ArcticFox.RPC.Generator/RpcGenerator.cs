@@ -149,6 +149,7 @@ namespace ArcticFox.RPC.Generator
             writer.WriteLine("}");
             
             GenerateGenericClass(classGenInfo, writer);
+            GenerateRemoteProxyClass(classGenInfo, writer);
             GenerateRemoteClass(classGenInfo, writer);
 
             scope.End(writer);
@@ -169,14 +170,14 @@ namespace ArcticFox.RPC.Generator
             writer.WriteLine("}");
         }
 
-        private static void GenerateRemoteClass(ClassGenInfo classGenInfo, IndentedTextWriter writer)
+        private static void GenerateRemoteProxyClass(ClassGenInfo classGenInfo, IndentedTextWriter writer)
         {
             writer.WriteLine();
-            writer.WriteLine($"public class {classGenInfo.m_symbol.Name}_Remote : {classGenInfo.m_symbol.Name}<IRpcSocket>");
+            writer.WriteLine($"public class {classGenInfo.m_symbol.Name}_RemoteProxy : {classGenInfo.m_symbol.Name}<IRpcSocket>");
             writer.WriteLine("{");
             writer.Indent++;
             
-            writer.WriteLine($"public static readonly {classGenInfo.m_symbol.Name}_Remote Instance = new();");
+            writer.WriteLine($"public static readonly {classGenInfo.m_symbol.Name}_RemoteProxy Instance = new();");
             writer.WriteLine();
             
             foreach (var method in classGenInfo.m_methods)
@@ -186,11 +187,30 @@ namespace ArcticFox.RPC.Generator
                 {
                     writer.Write($"<{method.m_responseType}>");
                 }
-                writer.Write($" {method.m_name}(IRpcSocket socket, {method.m_requestType} request) => {method.m_name}Method.Call");
+                writer.Write($" {method.m_name}(IRpcSocket socket, {method.m_requestType} request, CancellationToken cancellationToken=default) => {method.m_name}Method.Call");
                 if (method.m_responseType == null) writer.Write("Async");
-                writer.WriteLine("(socket, request);");
+                writer.WriteLine("(socket, request, cancellationToken);");
             }
 
+            writer.Indent--;
+            writer.WriteLine("}");
+        }
+        
+        private static void GenerateRemoteClass(ClassGenInfo classGenInfo, IndentedTextWriter writer)
+        {
+            writer.WriteLine();
+            writer.WriteLine($"public static class {classGenInfo.m_symbol.Name}_Remote");
+            writer.WriteLine("{");
+            writer.Indent++;
+            foreach (var method in classGenInfo.m_methods)
+            {
+                writer.Write("public static ValueTask");
+                if (method.m_responseType != null)
+                {
+                    writer.Write($"<{method.m_responseType}>");
+                }
+                writer.Write($" {method.m_name}(IRpcSocket socket, {method.m_requestType} request, CancellationToken cancellationToken=default) => {classGenInfo.m_symbol.Name}_RemoteProxy.Instance.{method.m_name}(socket, request, cancellationToken);");
+            }
             writer.Indent--;
             writer.WriteLine("}");
         }
@@ -204,7 +224,7 @@ namespace ArcticFox.RPC.Generator
                 {
                     writer.Write($"<{method.m_responseType}>");
                 }
-                writer.WriteLine($" {method.m_name}(T socket, {method.m_requestType} request);");
+                writer.WriteLine($" {method.m_name}(T socket, {method.m_requestType} request, CancellationToken cancellationToken=default);");
             }
         }
 
@@ -213,13 +233,13 @@ namespace ArcticFox.RPC.Generator
             writer.WriteLine();
             foreach (var method in classGenInfo.m_methods)
             {
-                writer.Write($"private async ValueTask<object?> __{method.m_name}Typeless(T socket, {method.m_requestType} request) ");
+                writer.Write($"private async ValueTask<object?> __{method.m_name}Typeless(T socket, {method.m_requestType} request, CancellationToken cancellationToken=default) ");
                 if (method.m_responseType != null)
                 {
-                    writer.WriteLine($"=> await {method.m_name}(socket, request);");
+                    writer.WriteLine($"=> await {method.m_name}(socket, request, cancellationToken);");
                 } else
                 {
-                    writer.WriteLine($"{{ await {method.m_name}(socket, request); return null; }}");
+                    writer.WriteLine($"{{ await {method.m_name}(socket, request, cancellationToken); return null; }}");
                 }
             }
         }
@@ -227,7 +247,7 @@ namespace ArcticFox.RPC.Generator
         private static void GenerateMethodHandler(ClassGenInfo classGenInfo, IndentedTextWriter writer)
         {
             writer.WriteLine();
-            writer.WriteLine("public ValueTask<object?> InvokeMethodHandler(T socket, string method, ReadOnlySpan<byte> data, object? token)");
+            writer.WriteLine("public ValueTask<object?> InvokeMethodHandler(T socket, string method, ReadOnlySpan<byte> data, object? token, CancellationToken cancellationToken=default)");
             writer.WriteLine("{");
             writer.Indent++;
             writer.WriteLine("switch (method)");
@@ -236,7 +256,7 @@ namespace ArcticFox.RPC.Generator
             
             foreach (var method in classGenInfo.m_methods)
             {
-                writer.WriteLine($"case {method.GetDispatchName()}: return __{method.m_name}Typeless(socket, {method.m_name}Method.DecodeRequest(data, token));");
+                writer.WriteLine($"case {method.GetDispatchName()}: return __{method.m_name}Typeless(socket, {method.m_name}Method.DecodeRequest(data, token, cancellationToken));");
             }
             writer.WriteLine("default: throw new Exception($\"unknown method {method}\");");
             

@@ -27,7 +27,7 @@ namespace ArcticFox.RPC
             
             if (m_func != null) return m_func(message);
             
-            if (m_tcs != null) m_tcs.SetResult(message);
+            if (m_tcs != null) m_tcs.TrySetResult(message);
             
             return ValueTask.CompletedTask;
         }
