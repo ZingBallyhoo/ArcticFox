@@ -82,7 +82,7 @@ namespace ArcticFox.RPC
             });
         }
 
-        public override ValueTask DisposeAsync()
+        public override ValueTask CleanupAsync()
         {
             foreach (var callback in m_callbacks)
             {
@@ -91,7 +91,7 @@ namespace ArcticFox.RPC
             // IsClosed is set, no more callbacks can be added :tm:
             m_callbacks.Clear();
             
-            return base.DisposeAsync();
+            return base.CleanupAsync();
         }
 
         public abstract ValueTask CallRemoteAsync<TRequest>(RpcMethod method, TRequest request, RpcCallback? callback, CancellationToken cancellationToken = default) where TRequest : class;

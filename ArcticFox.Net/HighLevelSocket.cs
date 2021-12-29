@@ -9,7 +9,7 @@ using ArcticFox.Net.Util;
 
 namespace ArcticFox.Net
 {
-    public class HighLevelSocket : IBroadcaster, IAsyncDisposable
+    public class HighLevelSocket : IBroadcaster, IDisposable
     {
         public readonly SocketInterface m_socket;
         public readonly TaskQueue m_taskQueue;
@@ -93,7 +93,12 @@ namespace ArcticFox.Net
             await m_netEventQueue.BroadcastEventOwningCreation(newNetEv);
         }
 
-        public virtual async ValueTask DisposeAsync()
+        public void Dispose()
+        {
+            Close();
+        }
+
+        public virtual async ValueTask CleanupAsync()
         {
             await m_netEventQueue.DisposeAsync();
             m_netInputCodec?.Dispose();

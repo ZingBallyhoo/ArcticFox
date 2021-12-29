@@ -172,7 +172,7 @@ namespace ArcticFox.Net
         {
             try
             {
-                await socket.DisposeAsync();
+                await socket.CleanupAsync();
             } catch (Exception e)
             {
                 // todo: log
