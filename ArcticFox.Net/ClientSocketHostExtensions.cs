@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
@@ -26,6 +27,21 @@ namespace ArcticFox.Net
             await socket.ConnectAsync(endPoint);
             
             var tcpSocket = new TcpSocket(socket);
+            var hl = host.CreateHighLevelSocket(tcpSocket);
+            await host.AddSocket(hl);
+            return (T)hl;
+        }
+        
+        public static async ValueTask<T> CreateClientSslSocket<T>(this SocketHost host, DnsEndPoint endPoint) where T : HighLevelSocket
+        {
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            await socket.ConnectAsync(endPoint);
+
+            var netStream = new NetworkStream(socket);
+            var sslStream = new SslStream(netStream);
+            await sslStream.AuthenticateAsClientAsync(endPoint.Host);
+
+            var tcpSocket = new StreamSocket(sslStream);
             var hl = host.CreateHighLevelSocket(tcpSocket);
             await host.AddSocket(hl);
             return (T)hl;
