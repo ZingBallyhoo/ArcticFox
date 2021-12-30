@@ -44,6 +44,7 @@ namespace ArcticFox.Codec
         {
             output = default;
 
+            if (m_currentSize == 0) return true; // done lol
             if (data.Length == 0) return false; // nothing we can do
             if (m_currentSize == null) return false; 
             var currentSize = m_currentSize.Value;
