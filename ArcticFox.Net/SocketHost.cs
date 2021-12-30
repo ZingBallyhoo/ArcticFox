@@ -159,7 +159,7 @@ namespace ArcticFox.Net
                 await Console.Out.WriteLineAsync(e.ToString());
             } finally
             {
-                socket.Close();
+                hl.Close();
                 hl.m_taskQueue.Complete();
                 await DestroySocket(hl);
 
