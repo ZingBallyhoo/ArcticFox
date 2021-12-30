@@ -19,7 +19,7 @@ namespace ArcticFox.RPC
 
         protected bool TryRemoveCallback(T callbackID, [NotNullWhen(true)] out RpcCallback? callback)
         {
-            return m_callbacks.TryGetValue(callbackID, out callback);
+            return m_callbacks.TryRemove(callbackID, out callback);
         }
         
         protected void RegisterCallback(RpcCallback callback, T callbackID, CancellationToken cancellationToken)
