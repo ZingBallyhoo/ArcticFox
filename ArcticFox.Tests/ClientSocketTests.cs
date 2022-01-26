@@ -44,7 +44,7 @@ namespace ArcticFox.Tests
             await using var host = new TestSocketHost();
             await host.StartAsync();
 
-            await using var socket = await host.CreateClientWebSocket<TestSocket>(new Uri("wss://echo.websocket.org"));
+            using var socket = await host.CreateClientWebSocket<TestSocket>(new Uri("wss://echo.websocket.org"));
 
             await socket.BroadcastZeroTerminatedAscii("Hello Echo Bois\0"); // todo: can't send more than 1 \0? it doesn't work
             await Task.Delay(500); // this is over the internet lol
@@ -64,7 +64,7 @@ namespace ArcticFox.Tests
             using var server = new TcpServer(serverHost, endPoint);
             server.StartAcceptWorker();
 
-            await using var socket = await clientHost.CreateClientTcpSocket<TestSocket>(endPoint);
+            using var socket = await clientHost.CreateClientTcpSocket<TestSocket>(endPoint);
             await socket.BroadcastZeroTerminatedAscii("Hello Echo Bois\0");
             
             await Task.Delay(50);

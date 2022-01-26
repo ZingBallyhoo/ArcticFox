@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using ArcticFox.RPC;
 
@@ -14,22 +15,22 @@ namespace ArcticFox.Tests.RPC
     
     public class MyService_Server : MyService<MyRpcServerSocket>
     {
-        public override ValueTask<Response1> One(MyRpcServerSocket socket, Request1 request)
+        public override ValueTask<Response1> One(MyRpcServerSocket socket, Request1 request, CancellationToken cancellationToken=default)
         {
             return new ValueTask<Response1>(new Response1());
         }
 
-        public override ValueTask<Response2> Two(MyRpcServerSocket socket, Request2 request)
+        public override ValueTask<Response2> Two(MyRpcServerSocket socket, Request2 request, CancellationToken cancellationToken=default)
         {
             return new ValueTask<Response2>(new Response2());
         }
 
-        public override ValueTask Three(MyRpcServerSocket socket, Request3 request)
+        public override ValueTask Three(MyRpcServerSocket socket, Request3 request, CancellationToken cancellationToken=default)
         {
             return ValueTask.CompletedTask;
         }
 
-        public override ValueTask<Response4> Four(MyRpcServerSocket socket, Request4 request)
+        public override ValueTask<Response4> Four(MyRpcServerSocket socket, Request4 request, CancellationToken cancellationToken=default)
         {
             throw new Exception("oh no....");
         }

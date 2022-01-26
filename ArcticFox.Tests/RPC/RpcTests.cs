@@ -48,9 +48,9 @@ namespace ArcticFox.Tests.RPC
             var server = new TcpServer(host, endPoint);
             server.StartAcceptWorker();
 
-            var remoteService = new MyService_Remote();
+            var remoteService = MyService_RemoteProxy.Instance;
             
-            await using var socket = await clientHost.CreateClientTcpSocket<MyRpcClientSocket>(endPoint);
+            using var socket = await clientHost.CreateClientTcpSocket<MyRpcClientSocket>(endPoint);
             
             // normal request
             var response1 = await remoteService.One(socket, new Request1());

@@ -131,6 +131,7 @@ namespace ArcticFox.RPC.Generator
             var writer = new IndentedTextWriter(new StringWriter(), "    ");
             
             writer.WriteLine("using System;");
+            writer.WriteLine("using System.Threading;");
             writer.WriteLine("using System.Threading.Tasks;");
             writer.WriteLine("using ArcticFox.RPC;");
             writer.WriteLine();
@@ -209,7 +210,7 @@ namespace ArcticFox.RPC.Generator
                 {
                     writer.Write($"<{method.m_responseType}>");
                 }
-                writer.Write($" {method.m_name}(IRpcSocket socket, {method.m_requestType} request, CancellationToken cancellationToken=default) => {classGenInfo.m_symbol.Name}_RemoteProxy.Instance.{method.m_name}(socket, request, cancellationToken);");
+                writer.WriteLine($" {method.m_name}(IRpcSocket socket, {method.m_requestType} request, CancellationToken cancellationToken=default) => {classGenInfo.m_symbol.Name}_RemoteProxy.Instance.{method.m_name}(socket, request, cancellationToken);");
             }
             writer.Indent--;
             writer.WriteLine("}");
@@ -256,7 +257,7 @@ namespace ArcticFox.RPC.Generator
             
             foreach (var method in classGenInfo.m_methods)
             {
-                writer.WriteLine($"case {method.GetDispatchName()}: return __{method.m_name}Typeless(socket, {method.m_name}Method.DecodeRequest(data, token, cancellationToken));");
+                writer.WriteLine($"case {method.GetDispatchName()}: return __{method.m_name}Typeless(socket, {method.m_name}Method.DecodeRequest(data, token), cancellationToken);");
             }
             writer.WriteLine("default: throw new Exception($\"unknown method {method}\");");
             

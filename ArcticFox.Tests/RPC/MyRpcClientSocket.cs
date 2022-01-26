@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using ArcticFox.Codec;
 using ArcticFox.Codec.Binary;
@@ -64,7 +65,7 @@ namespace ArcticFox.Tests.RPC
             }
         }
 
-        public async ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback) where T : class
+        public async ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback, CancellationToken cancellationToken = default) where T : class
         {
             var requestTyped = (ITestRpcMessage)request;
             
@@ -95,7 +96,7 @@ namespace ArcticFox.Tests.RPC
             Close();
         }
         
-        public override async ValueTask DisposeAsync()
+        public override async ValueTask CleanupAsync()
         {
             using (var callbacks = m_callbacks.GetSync())
             {
@@ -104,7 +105,7 @@ namespace ArcticFox.Tests.RPC
                     callbackPair.Value.Cancel();
                 }
             }
-            await base.DisposeAsync();
+            await base.CleanupAsync();
         }
     }
 }

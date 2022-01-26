@@ -30,10 +30,10 @@ namespace ArcticFox.SmartFoxServer
             return user;
         }
 
-        public override async ValueTask DisposeAsync()
+        public override async ValueTask CleanupAsync()
         {
             await m_manager.LogoutSocket(this);
-            await base.DisposeAsync();
+            await base.CleanupAsync();
         }
     }
 }
