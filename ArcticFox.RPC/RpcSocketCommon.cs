@@ -72,7 +72,11 @@ namespace ArcticFox.RPC
             {
                 return;
             }
-            
+            ProcessCallback(callback, input, token);
+        }
+
+        protected void ProcessCallback(RpcCallback callback, ReadOnlySpan<byte> input, object? token)
+        {
             var processTask = callback.Process(input, token);
             if (processTask.IsCompleted) return;
             
