@@ -68,6 +68,11 @@ namespace ArcticFox.Codec.Binary
             }
             m_writer.WriteBits(obj, bitCount);
         }
+        
+        public void FlushBit()
+        {
+            m_writer.FlushBit();
+        }
 
         public Span<byte> GetSpanOfNextBytes(int size)
         {
