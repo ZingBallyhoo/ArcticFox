@@ -5,7 +5,7 @@ namespace ArcticFox.Codec
 {
     public class ZeroDelimitedDecodeCodec : SpanCodec<byte, byte>, IDisposable
     {
-        private MemoryOwner<byte> m_recvBuffer = MemoryOwner<byte>.Empty;
+        private MemoryOwner<byte>? m_recvBuffer;
         private int m_recvBufferPos;
 
         public bool m_canGrow = true;
@@ -39,7 +39,7 @@ namespace ArcticFox.Codec
                 }
                 
                 if (!GrowBufferBy(packetSize)) break;
-                packetSpan.CopyTo(m_recvBuffer.Span.Slice(m_recvBufferPos));
+                packetSpan.CopyTo(m_recvBuffer!.Span.Slice(m_recvBufferPos));
                 
                 m_recvBufferPos += packetSize;
                 if (idxOf0 != -1)
@@ -54,7 +54,7 @@ namespace ArcticFox.Codec
         {
             var currentBuffer = m_recvBuffer;
             var targetLen = size + m_recvBufferPos;
-            if (currentBuffer.Length >= targetLen) return true;
+            if (currentBuffer != null && currentBuffer.Length >= targetLen) return true;
             
             if (!m_canGrow)
             {
@@ -64,9 +64,9 @@ namespace ArcticFox.Codec
             }
 
             var newBuffer = MemoryOwner<byte>.Allocate(targetLen);
-            currentBuffer.Memory.CopyTo(newBuffer.Memory);
+            currentBuffer?.Memory.CopyTo(newBuffer.Memory);
             m_recvBuffer = newBuffer;
-            currentBuffer.Dispose();
+            currentBuffer?.Dispose();
 
             return true;
         }
@@ -74,8 +74,8 @@ namespace ArcticFox.Codec
         private void DisposeCurrentBuffer()
         {
             var recvBuffer = m_recvBuffer;
-            m_recvBuffer = MemoryOwner<byte>.Empty;
-            recvBuffer.Dispose();
+            m_recvBuffer = null;
+            recvBuffer?.Dispose();
         }
         
         public virtual void Dispose()
