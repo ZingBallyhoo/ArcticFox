@@ -1,92 +1,30 @@
 using System;
-using CommunityToolkit.HighPerformance.Buffers;
 
 namespace ArcticFox.Codec
 {
-    public class ZeroDelimitedDecodeCodec : SpanCodec<byte, byte>, IDisposable
+    public class ZeroDelimitedDecodeCodec : DynamicSizeBufferCodec<byte>
     {
-        private MemoryOwner<byte>? m_recvBuffer;
-        private int m_recvBufferPos;
-
-        public bool m_canGrow = true;
-
         public byte m_delimitByte = 0;
 
         public override void Input(ReadOnlySpan<byte> input, ref object? state)
         {
-            var packetOffset = 0;
-            while (packetOffset < input.Length)
+            while (input.Length > 0)
             {
-                var packetToEndSpan = input.Slice(packetOffset);
-                var idxOf0 = packetToEndSpan.IndexOf(m_delimitByte);
+                var idxOf0 = input.IndexOf(m_delimitByte);
 
-                int packetSize;
-                if (idxOf0 == -1) packetSize = packetToEndSpan.Length;
-                else packetSize = idxOf0;
-
-                var packetSpan = packetToEndSpan.Slice(0, packetSize);
-                packetOffset += packetSize;
-                if (idxOf0 != -1)
+                if (idxOf0 == -1)
                 {
-                    packetOffset += 1; // ignore 0
-                }
-
-                if (idxOf0 != -1 && m_recvBufferPos == 0)
+                    ExtendMemory(ref input);
+                } else
                 {
-                    // no need to copy, we have received all in 1 blob
-                    CodecOutput(packetSpan, ref state);
-                    continue;
-                }
-                
-                if (!GrowBufferBy(packetSize)) break;
-                packetSpan.CopyTo(m_recvBuffer!.Span.Slice(m_recvBufferPos));
-                
-                m_recvBufferPos += packetSize;
-                if (idxOf0 != -1)
-                {
-                    CodecOutput(m_recvBuffer.Span.Slice(0, m_recvBufferPos), ref state);
-                    m_recvBufferPos = 0;
+                    ExtendFinalMemory(ref input, input.Slice(0, idxOf0), ref state);
+                    input = input.Slice(1); // skip 0
                 }
             }
         }
-        
-        private bool GrowBufferBy(int size)
-        {
-            var currentBuffer = m_recvBuffer;
-            var targetLen = size + m_recvBufferPos;
-            if (currentBuffer != null && currentBuffer.Length >= targetLen) return true;
-            
-            if (!m_canGrow)
-            {
-                //Log.Error("Disconnecting {Endpoint} because the read buffer can't grow (to {Size} bytes)", GetIdentifier(), targetLen);
-                Abort();
-                return false;
-            }
 
-            var newBuffer = MemoryOwner<byte>.Allocate(targetLen);
-            currentBuffer?.Memory.CopyTo(newBuffer.Memory);
-            m_recvBuffer = newBuffer;
-            currentBuffer?.Dispose();
-
-            return true;
-        }
-
-        private void DisposeCurrentBuffer()
+        protected override void Reset()
         {
-            var recvBuffer = m_recvBuffer;
-            m_recvBuffer = null;
-            recvBuffer?.Dispose();
-        }
-        
-        public virtual void Dispose()
-        {
-            DisposeCurrentBuffer();
-            GC.SuppressFinalize(this);
-        }
-        
-        ~ZeroDelimitedDecodeCodec()
-        {
-            DisposeCurrentBuffer();
         }
     }
 }
