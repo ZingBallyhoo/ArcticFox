@@ -12,7 +12,7 @@ namespace ArcticFox.Codec.Binary
         public int m_dataOffset { get; private set; }
         public int m_dataLength => m_output.Length;
 
-        private byte m_bitValue;
+        private ref byte m_bitValue => ref m_output[m_dataOffset];
         public byte m_bitPositionInByte { get; private set; }
 
         public int m_effectiveByteOffset => m_dataOffset + (m_bitPositionInByte != 0 ? 1 : 0); // consider pending bits
@@ -23,7 +23,7 @@ namespace ArcticFox.Codec.Binary
         {
             m_output = output;
             m_dataOffset = 0;
-            m_bitValue = 0;
+            //m_bitValue = 0;
             m_bitPositionInByte = 0;
         }
 
@@ -32,6 +32,10 @@ namespace ArcticFox.Codec.Binary
             if (bit)
             {
                 m_bitValue |= (byte) (1 << m_bitPositionInByte);
+            }
+            else
+            {
+                m_bitValue &= (byte)~(byte) (1 << m_bitPositionInByte);
             }
             m_bitPositionInByte++;
             
@@ -52,10 +56,14 @@ namespace ArcticFox.Codec.Binary
             Debug.Assert(remainingBitsThisByte >= bitCount);
             
             // todo: assumes caller is sane and doesn't pass garbage bits. could mask using bitcount
-            
-            m_bitValue |= (byte)(bits << m_bitPositionInByte);
+
+            var shifted = (byte)(bits << m_bitPositionInByte);
+
+            m_bitValue &= (byte)~shifted;
+            m_bitValue |= shifted;
             m_bitPositionInByte += bitCount;
             
+            Debug.Assert(m_bitPositionInByte <= 8);
             if (m_bitPositionInByte == 8) FlushBit();
         }
 
@@ -191,14 +199,13 @@ namespace ArcticFox.Codec.Binary
         public void FlushBit()
         {
             if (m_bitPositionInByte == 0) return;
-
-            m_output[m_dataOffset++] = m_bitValue;
             m_bitPositionInByte = 0;
-            m_bitValue = 0;
+            m_dataOffset++;
         }
 
         public Span<byte> GetSpanOfNextBytes(int size)
         {
+            FlushBit();
             var span = m_output.Slice(m_dataOffset, size);
             m_dataOffset += size;
             return span;
@@ -228,7 +235,7 @@ namespace ArcticFox.Codec.Binary
                 throw new IndexOutOfRangeException();
             }
             
-            if (bytePos == m_dataOffset-1 && m_bitPositionInByte != 0 && bitPos != 0)
+            if (bytePos == m_dataOffset && bitPos != 0)
             {
                 m_bitPositionInByte = (byte)bitPos;
                 return;

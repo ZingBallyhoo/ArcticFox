@@ -232,7 +232,7 @@ namespace ArcticFox.Tests.SmartFoxServer
             await user.MoveTo(room);
             
             user.m_socket!.Close();
-            await Task.Delay(300);
+            await Task.Delay(500);
 
             Assert.Null(await zone.GetUser(userName));
             Assert.Throws<ObjectDisposedException>(() => socket.GetUser());

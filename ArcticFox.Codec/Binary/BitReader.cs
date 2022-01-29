@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 
@@ -12,7 +13,7 @@ namespace ArcticFox.Codec.Binary
         public int m_dataLength => m_data.Length;
 
         private byte m_bitValue;
-        public byte m_bitPositionInByte { get; private set; }
+        public byte m_bitPositionInByte { get; private set; } = 8;
 
         public bool m_notReadingBits => m_bitPositionInByte == 8;
 
@@ -24,7 +25,6 @@ namespace ArcticFox.Codec.Binary
             m_data = data;
             m_dataOffset = 0;
             m_bitValue = 0;
-            m_bitPositionInByte = 8;
         }
 
         private void ClearBit()
@@ -39,10 +39,15 @@ namespace ArcticFox.Codec.Binary
         }
 
         public sbyte ReadSByte() => (sbyte) ReadByte();
-
+        
         public void ReadBytesTo(Span<byte> output, int count)
         {
-            var readSpan = ReadBytes(count);
+            ReadBytesTo(output.Slice(0, count));
+        }
+
+        public void ReadBytesTo(Span<byte> output)
+        {
+            var readSpan = ReadBytes(output.Length);
             readSpan.CopyTo(output);
         }
         
@@ -104,17 +109,20 @@ namespace ArcticFox.Codec.Binary
 
         public unsafe T ReadBits<T>(uint bitCount) where T : unmanaged
         {
-            Debug.Assert(sizeof(T) * 8 >= bitCount);
+            if (sizeof(T) * 8 < bitCount) throw new InvalidDataException();
 
             var obj = new T();
-
             var objSpan = new Span<byte>((byte*)&obj, sizeof(T));
-            var writer = new BitWriter(objSpan);
-
-            writer.WriteBits(ref this, bitCount);
-            writer.FlushBit();
+            ReadBits(objSpan, bitCount);
 
             return obj;
+        }
+        
+        public void ReadBits(Span<byte> span, uint bitCount)
+        {
+            var writer = new BitWriter(span);
+            writer.WriteBits(ref this, bitCount);
+            writer.FlushBit();
         }
 
         public void SkipBytes(int count)

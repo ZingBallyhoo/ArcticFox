@@ -14,7 +14,7 @@ namespace ArcticFox.Perf
         [GlobalSetup]
         public void GlobalSetup()
         {
-            using var growingWriter = GrowingBitWriter.Create();
+            using var growingWriter = new GrowingBitWriter();
             for (var i = 0; i < m_offset; i++)
             {
                 growingWriter.WriteBit(false);

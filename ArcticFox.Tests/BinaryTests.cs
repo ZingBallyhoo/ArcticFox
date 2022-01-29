@@ -1,3 +1,4 @@
+using System;
 using ArcticFox.Codec.Binary;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void GrowableBufferHandlesDanglingByte()
         {
-            using var growableBuffer = GrowingBitWriter.Create();
+            using var growableBuffer = new GrowingBitWriter();
             growableBuffer.WriteInt32LittleEndian(100);
             
             growableBuffer.WriteBit(true); // 1
@@ -90,7 +91,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void GrowableCanHandleWriteBits()
         {
-            using var growable = GrowingBitWriter.Create();
+            using var growable = new GrowingBitWriter();
             for (var i = 0; i < 1024; i++)
             {
                 growable.WriteByte(0);
@@ -110,7 +111,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void WillNotGrowOnBoundary()
         {
-            using var writer = GrowingBitWriter.Create();
+            using var writer = new GrowingBitWriter();
             for (var i = 0; i < 1024-8; i++)
             {
                 writer.WriteByte(0);
@@ -122,7 +123,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void WillGrowOverBoundary()
         {
-            using var writer = GrowingBitWriter.Create();
+            using var writer = new GrowingBitWriter();
             for (var i = 0; i < 1024-7; i++)
             {
                 writer.WriteByte(0);
@@ -134,7 +135,7 @@ namespace ArcticFox.Tests
         [Fact]
         public void AllTheTypes()
         {
-            using var writer = GrowingBitWriter.Create();
+            using var writer = new GrowingBitWriter();
             writer.WriteByte(123);
             writer.WriteSByte(-123);
             writer.WriteDoubleBigEndian(123);
@@ -173,6 +174,26 @@ namespace ArcticFox.Tests
             Assert.Equal(123u, reader.ReadUInt32LittleEndian());
             Assert.Equal(123ul, reader.ReadUInt64BigEndian());
             Assert.Equal(123ul, reader.ReadUInt64LittleEndian());
+            
+            var reader2 = new ZeroTruncatedBitReader(writer.GetData().Span);
+            Assert.Equal(123, reader2.ReadByte());
+            Assert.Equal(-123, reader2.ReadSByte());
+            Assert.Equal(123, reader2.ReadDoubleBigEndian());
+            Assert.Equal(123, reader2.ReadDoubleLittleEndian());
+            Assert.Equal(123, reader2.ReadInt16BigEndian());
+            Assert.Equal(123, reader2.ReadInt16LittleEndian());
+            Assert.Equal(123, reader2.ReadInt32BigEndian());
+            Assert.Equal(123, reader2.ReadInt32LittleEndian());
+            Assert.Equal(123, reader2.ReadInt64BigEndian());
+            Assert.Equal(123, reader2.ReadInt64LittleEndian());
+            Assert.Equal(123, reader2.ReadSingleBigEndian());
+            Assert.Equal(123, reader2.ReadSingleLittleEndian());
+            Assert.Equal(123, reader2.ReadUInt16BigEndian());
+            Assert.Equal(123, reader2.ReadUInt16LittleEndian());
+            Assert.Equal(123u, reader2.ReadUInt32BigEndian());
+            Assert.Equal(123u, reader2.ReadUInt32LittleEndian());
+            Assert.Equal(123ul, reader2.ReadUInt64BigEndian());
+            Assert.Equal(123ul, reader2.ReadUInt64LittleEndian());
         }
 
         [Fact]
@@ -207,6 +228,10 @@ namespace ArcticFox.Tests
         {
             var writer = new BitWriter(new byte[4]);
             
+            writer.SeekBit(0);
+            writer.SeekBit(1);
+            
+            writer.SeekBit(0);
             writer.WriteBit(true);
             writer.SeekBit(0);
             writer.WriteBit(false);
@@ -249,6 +274,67 @@ namespace ArcticFox.Tests
             
             reader.SeekByte(2);
             Assert.Equal(0x12, reader.ReadByte());
+        }
+
+        [Fact]
+        public void ZeroNoData()
+        {
+            var reader = new ZeroTruncatedBitReader(ReadOnlySpan<byte>.Empty);
+            Assert.False(reader.ReadBit());
+            Assert.Equal(0ul, reader.ReadBits<ulong>(64));
+            Assert.Equal(0, reader.ReadByte());
+            Assert.Equal(0, reader.ReadSByte());
+            Assert.Equal(0, reader.ReadDoubleBigEndian());
+            Assert.Equal(0, reader.ReadDoubleLittleEndian());
+            Assert.Equal(0, reader.ReadInt16BigEndian());
+            Assert.Equal(0, reader.ReadInt16LittleEndian());
+            Assert.Equal(0, reader.ReadInt32BigEndian());
+            Assert.Equal(0, reader.ReadInt32LittleEndian());
+            Assert.Equal(0, reader.ReadInt64BigEndian());
+            Assert.Equal(0, reader.ReadInt64LittleEndian());
+            Assert.Equal(0, reader.ReadSingleBigEndian());
+            Assert.Equal(0, reader.ReadSingleLittleEndian());
+            Assert.Equal(0, reader.ReadUInt16BigEndian());
+            Assert.Equal(0, reader.ReadUInt16LittleEndian());
+            Assert.Equal(0u, reader.ReadUInt32BigEndian());
+            Assert.Equal(0u, reader.ReadUInt32LittleEndian());
+            Assert.Equal(0ul, reader.ReadUInt64BigEndian());
+            Assert.Equal(0ul, reader.ReadUInt64LittleEndian());
+        }
+
+        [Fact]
+        public void ZeroReadLittleEndian()
+        {
+            var writer = new BitWriter(new byte[1]);
+            writer.WriteByte(123);
+            
+            var reader = new ZeroTruncatedBitReader(writer.m_output);
+            
+            Assert.Equal(123, reader.ReadByte());
+            
+            reader.SeekByte(0);
+            Assert.Equal(123, reader.ReadInt16LittleEndian());
+
+            reader.SeekByte(0);
+            Assert.Equal(123, reader.ReadInt32LittleEndian());
+            
+            reader.SeekByte(0);
+            Assert.Equal(123, reader.ReadInt64LittleEndian());
+            
+            reader.SeekByte(0);
+            Assert.Equal(123, reader.ReadUInt16LittleEndian());
+            
+            reader.SeekByte(0);
+            Assert.Equal(123u, reader.ReadUInt32LittleEndian());
+            
+            reader.SeekByte(0);
+            Assert.Equal(123ul, reader.ReadUInt64LittleEndian());
+
+            for (var i = 8u; i < 64; i++)
+            {
+                reader.SeekByte(0);
+                Assert.Equal(123ul, reader.ReadBits<ulong>(i));
+            }
         }
     }
 }
