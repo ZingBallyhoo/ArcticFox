@@ -235,20 +235,8 @@ namespace ArcticFox.Codec.Binary
                 throw new IndexOutOfRangeException();
             }
             
-            if (bytePos == m_dataOffset && bitPos != 0)
-            {
-                m_bitPositionInByte = (byte)bitPos;
-                return;
-            }
-
-            FlushBit();
             m_dataOffset = (int)bytePos;
-
-            if (bitPos != 0)
-            {
-                m_bitValue = m_output[m_dataOffset];
-                m_bitPositionInByte = (byte)bitPos;
-            }
+            m_bitPositionInByte = (byte)bitPos;
         }
     }
 }

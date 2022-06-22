@@ -19,7 +19,7 @@ namespace ArcticFox.Codec.Binary
         public GrowingBitWriter()
         {
             m_memorySize = 1024;
-            m_memory = MemoryOwner<byte>.Allocate(m_memorySize);
+            m_memory = MemoryOwner<byte>.Allocate(m_memorySize, AllocationMode.Clear);
             m_writer = new BitWriter(m_memory.Memory.Span);
         }
         
@@ -68,6 +68,11 @@ namespace ArcticFox.Codec.Binary
             }
             m_writer.WriteBits(obj, bitCount);
         }
+        
+        public void FlushBit()
+        {
+            m_writer.FlushBit();
+        }
 
         public Span<byte> GetSpanOfNextBytes(int size)
         {
@@ -92,9 +97,9 @@ namespace ArcticFox.Codec.Binary
             var currentMemory = m_memory;
             var currentMemoryReader = new BitReader(currentMemory.Memory.Span);
             
-            var newMemory = MemoryOwner<byte>.Allocate(m_memorySize);
-            var newWriter = new BitWriter(newMemory.Memory.Span);
+            var newMemory = MemoryOwner<byte>.Allocate(m_memorySize, AllocationMode.Clear);
             
+            var newWriter = new BitWriter(newMemory.Memory.Span);
             newWriter.WriteBits(ref currentMemoryReader, m_writer.m_fullBitOffset);
             currentMemory.Dispose();
             
