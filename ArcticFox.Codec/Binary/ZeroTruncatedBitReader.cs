@@ -39,7 +39,7 @@ namespace ArcticFox.Codec.Binary
         
         public bool ReadBit()
         {
-            if (m_remainingBytes <= 0) return false;
+            if (m_remainingBits <= 0) return false;
             return m_reader.ReadBit();
         }
 

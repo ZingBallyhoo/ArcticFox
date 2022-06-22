@@ -336,5 +336,43 @@ namespace ArcticFox.Tests
                 Assert.Equal(123ul, reader.ReadBits<ulong>(i));
             }
         }
+        
+        [Fact]
+        public void ZeroTruncatedRemainingBits()
+        {
+            var writer = new BitWriter(new byte[1]);
+            writer.WriteBit(false);
+            writer.WriteBit(false);
+            writer.WriteBit(false);
+            
+            writer.SeekBit(2);
+            writer.WriteBit(true);
+            writer.FlushBit();
+            
+            var reader = new ZeroTruncatedBitReader(writer.m_output);
+            Assert.False(reader.ReadBit());
+            Assert.False(reader.ReadBit());
+            Assert.True(reader.ReadBit());
+        }
+        
+        [Fact]
+        public void WriteBitsToCurrentDoesntClobber()
+        {
+            var writer = new BitWriter(new byte[1]);
+            writer.WriteBit(true); // ensures only bits targeted are written
+            writer.WriteBits((byte)0b000000, 6);
+            writer.WriteBit(true); // ensures only bits targeted are written
+            
+            writer.SeekBit(1);
+            writer.WriteBits((byte)0b100001, 6);
+            writer.SeekBit(1);
+            writer.WriteBits((byte)0b010000, 6); // set bits that were previously 1 to 0
+            writer.FlushBit();
+            
+            var reader = new BitReader(writer.m_output);
+            Assert.True(reader.ReadBit());
+            Assert.Equal(0b010000, reader.ReadBits<byte>(6));
+            Assert.True(reader.ReadBit());
+        }
     }
 }

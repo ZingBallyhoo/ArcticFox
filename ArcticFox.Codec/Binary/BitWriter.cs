@@ -57,10 +57,10 @@ namespace ArcticFox.Codec.Binary
             
             // todo: assumes caller is sane and doesn't pass garbage bits. could mask using bitcount
 
-            var shifted = (byte)(bits << m_bitPositionInByte);
+            var maskToRemove = (byte)((1 << bitCount) - 1) << m_bitPositionInByte;
 
-            m_bitValue &= (byte)~shifted;
-            m_bitValue |= shifted;
+            m_bitValue &= (byte)~maskToRemove;
+            m_bitValue |= (byte)(bits << m_bitPositionInByte);
             m_bitPositionInByte += bitCount;
             
             Debug.Assert(m_bitPositionInByte <= 8);

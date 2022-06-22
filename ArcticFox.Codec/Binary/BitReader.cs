@@ -75,7 +75,7 @@ namespace ArcticFox.Codec.Binary
             return value;
         }
 
-        public byte ReadBitsFromCurrent(byte count)
+        internal byte ReadBitsFromCurrent(byte count)
         {
             if (m_notReadingBits) FetchNextBits();
 
