@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
@@ -113,9 +114,6 @@ namespace ArcticFox.Codec.Binary
                     if (Avx2.IsSupported)
                     {
                         maxByteCount = (byte)Vector256<byte>.Count;
-                    } else if (Sse2.IsSupported)
-                    {
-                        maxByteCount = (byte)Vector128<byte>.Count;
                     } else
                     {
                         maxByteCount = sizeof(ulong);
@@ -125,56 +123,46 @@ namespace ArcticFox.Codec.Binary
                     
                     unsafe
                     {
-                        var vector = Vector256<ulong>.Zero;
-                        var vectorSpan = new Span<byte>(&vector, maxByteCount);
+                        Unsafe.SkipInit(out Vector256<ulong> vectorSpace);
+                        var vectorSpan = new Span<byte>(&vectorSpace, maxByteCount);
                         buffer.ReadBytesTo(vectorSpan, (int)vectorBytesToRead);
                         
                         var startBitsReader = new BitReader(vectorSpan);
                         var startBits = startBitsReader.ReadBitsFromCurrent(maxBitsToReadGivenAlignment);
                         WriteBitsToCurrent(startBits, maxBitsToReadGivenAlignment);
+                        Debug.Assert(startBitsReader.m_bitPositionInByte == maxBitsToReadGivenAlignment);
+                        
+                        //var startBits = BitReader.ExtractBitRange(vectorSpan[0], 0, maxBitsToReadGivenAlignment); // todo: maybe use this.. idk. is struct hurting that bad
                         
                         // we have now aligned the writer to a byte boundary
                         Debug.Assert(m_bitPositionInByte == 0);
                         
+                        var alreadyReadBits = maxBitsToReadGivenAlignment;
                         var remainingBits = bitsToReadAsVector - maxBitsToReadGivenAlignment;
 
                         // remove the bits we've already written
-                        if (Vector256<float>.IsSupported && Avx2.IsSupported && remainingBits > 128)
+                        if (Vector256<ulong>.IsSupported && Avx2.IsSupported && remainingBits > 64)
                         {
                             // https://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
                             // https://codereview.stackexchange.com/questions/253761/optimizing-bit-matching-performance-using-avx-compiler-intrinsic
                             // https://stackoverflow.com/questions/35001722/global-bitwise-shift-of-128-256-512-bit-registry-using-intrinsics/35002285
                             
-                            var alreadyReadBits = startBitsReader.m_bitPositionInByte;
                             var otherShift = (byte)(64 - alreadyReadBits);
                             
+                            ref var vector = ref MemoryMarshal.AsRef<Vector256<ulong>>(vectorSpan);
                             var innerCarry = Avx2.ShiftLeftLogical(vector, otherShift);
                             var rotate = Avx2.Permute4x64(innerCarry, 0x39);
-                            var innerCarry2 = Avx2.Blend(Vector256<uint>.Zero, Unsafe.As<Vector256<ulong>, Vector256<uint>>(ref rotate), 0x3F);
+                            var innerCarry2 = Avx2.Blend(Vector256<uint>.Zero, rotate.AsUInt32(), 0x3F);
                             innerCarry = innerCarry2.AsUInt64();
                             
                             vector = Vector256.ShiftRightLogical(vector, alreadyReadBits);
                             vector = Vector256.BitwiseOr(vector, innerCarry);
-                        } else if (Vector128<float>.IsSupported && Sse2.IsSupported && remainingBits > 64)
-                        {
-                            // https://mischasan.wordpress.com/2012/12/26/sse2-bit-shift/
-                            // https://mischasan.wordpress.com/2013/04/07/the-c-preprocessor-not-as-cryptic-as-youd-think/
-                            
-                            ref var sseVec = ref Unsafe.As<Vector256<ulong>, Vector128<ulong>>(ref vector);
-
-                            var alreadyReadBits = startBitsReader.m_bitPositionInByte;
-                            var otherShift = (byte)(64 - alreadyReadBits);
-                            
-                            var innerCarry = Sse2.ShiftLeftLogical(
-                                Sse2.ShiftRightLogical128BitLane(sseVec, 8), otherShift);
-                            sseVec = Vector128.ShiftRightLogical(sseVec, alreadyReadBits);
-                            sseVec = Vector128.BitwiseOr(sseVec, innerCarry);
                         } else
                         {
                             Debug.Assert(remainingBits <= 64);
                             
-                            ref var ul = ref Unsafe.As<Vector256<ulong>, ulong>(ref vector);
-                            ul >>= startBitsReader.m_bitPositionInByte;
+                            ref var ul = ref MemoryMarshal.AsRef<ulong>(vectorSpan);
+                            ul >>= alreadyReadBits;
                         }
                         
                         // blit n bytes, then Read/WriteBitsFromCurrent remainder
