@@ -139,7 +139,7 @@ namespace ArcticFox.Codec.Binary
                         var remainingBits = bitsToReadAsVector - maxBitsToReadGivenAlignment;
 
                         // remove the bits we've already written
-                        if (Avx2.IsSupported && remainingBits > 128)
+                        if (Vector256<float>.IsSupported && Avx2.IsSupported && remainingBits > 128)
                         {
                             // https://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
                             // https://codereview.stackexchange.com/questions/253761/optimizing-bit-matching-performance-using-avx-compiler-intrinsic
@@ -151,11 +151,11 @@ namespace ArcticFox.Codec.Binary
                             var innerCarry = Avx2.ShiftLeftLogical(vector, otherShift);
                             var rotate = Avx2.Permute4x64(innerCarry, 0x39);
                             var innerCarry2 = Avx2.Blend(Vector256<uint>.Zero, Unsafe.As<Vector256<ulong>, Vector256<uint>>(ref rotate), 0x3F);
-                            innerCarry = Unsafe.As<Vector256<uint>, Vector256<ulong>>(ref innerCarry2);
+                            innerCarry = innerCarry2.AsUInt64();
                             
-                            vector = Avx2.ShiftRightLogical(vector, alreadyReadBits);
-                            vector = Avx2.Or(vector, innerCarry);
-                        } else if (Sse2.IsSupported && remainingBits > 64)
+                            vector = Vector256.ShiftRightLogical(vector, alreadyReadBits);
+                            vector = Vector256.BitwiseOr(vector, innerCarry);
+                        } else if (Vector128<float>.IsSupported && Sse2.IsSupported && remainingBits > 64)
                         {
                             // https://mischasan.wordpress.com/2012/12/26/sse2-bit-shift/
                             // https://mischasan.wordpress.com/2013/04/07/the-c-preprocessor-not-as-cryptic-as-youd-think/
@@ -165,10 +165,10 @@ namespace ArcticFox.Codec.Binary
                             var alreadyReadBits = startBitsReader.m_bitPositionInByte;
                             var otherShift = (byte)(64 - alreadyReadBits);
                             
-                            sseVec = Sse2.Or(
-                                Sse2.ShiftRightLogical(sseVec, alreadyReadBits),
-                                Sse2.ShiftLeftLogical(Sse2.ShiftRightLogical128BitLane(sseVec, 8),
-                                    otherShift));
+                            var innerCarry = Sse2.ShiftLeftLogical(
+                                Sse2.ShiftRightLogical128BitLane(sseVec, 8), otherShift);
+                            sseVec = Vector128.ShiftRightLogical(sseVec, alreadyReadBits);
+                            sseVec = Vector128.BitwiseOr(sseVec, innerCarry);
                         } else
                         {
                             Debug.Assert(remainingBits <= 64);
