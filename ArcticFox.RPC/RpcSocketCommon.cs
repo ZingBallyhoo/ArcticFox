@@ -62,7 +62,7 @@ namespace ArcticFox.RPC
         
         private void TryCancelCallback(T callbackID)
         {
-            if (!m_callbacks.TryRemove(callbackID, out var callback)) return;
+            if (!TryRemoveCallback(callbackID, out var callback)) return;
             callback.Cancel();
         }
 

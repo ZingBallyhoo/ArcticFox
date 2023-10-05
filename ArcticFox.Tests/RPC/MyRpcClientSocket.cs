@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,16 +11,13 @@ using ArcticFox.RPC;
 
 namespace ArcticFox.Tests.RPC
 {
-    public class MyRpcClientSocket : HighLevelSocket, IRpcSocket, ISpanConsumer<byte>
+    public class MyRpcClientSocket : RpcSocketCommon<uint>, ISpanConsumer<byte>
     {
-        private readonly AsyncLockedAccess<Dictionary<uint, RpcCallback>> m_callbacks;
         private readonly IDFactory m_callbackIDFactory;
         
         public MyRpcClientSocket(SocketInterface socket) : base(socket)
         {
             m_netInputCodec = new CodecChain().AddCodec(this);
-            
-            m_callbacks = new AsyncLockedAccess<Dictionary<uint, RpcCallback>>(new Dictionary<uint, RpcCallback>());
             m_callbackIDFactory = new IDFactory();
         }
 
@@ -43,40 +38,29 @@ namespace ArcticFox.Tests.RPC
                     20000 => new ErrorResponse(),
                     _ => throw new InvalidDataException($"unknown message {methodID}")
                 };
-
-                m_taskQueue.Enqueue(async () =>
+                
+                if (response is ErrorResponse)
                 {
-                    RpcCallback callback;
-                    using (var callbacks = await m_callbacks.Get())
-                    {
-                        callback = callbacks.m_value[requestID];
-                        callbacks.m_value.Remove(requestID);
-                    }
-
-                    if (response is ErrorResponse)
+                    if (TryRemoveCallback(requestID, out var callback))
                     {
                         callback.SetException(new Exception());
                     }
-                    else
-                    {
-                        await callback.Process(ReadOnlySpan<byte>.Empty, response);
-                    }
-                });
+                    return;
+                }
+                
+                ProcessCallback(requestID, ReadOnlySpan<byte>.Empty, response);
             }
         }
 
-        public async ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback, CancellationToken cancellationToken = default) where T : class
+        public override async ValueTask CallRemoteAsync<T>(RpcMethod method, T request, RpcCallback? callback, CancellationToken cancellationToken = default) where T : class
         {
             var requestTyped = (ITestRpcMessage)request;
             
             uint callbackID = 0;
             if (callback != null)
             {
-                var callbackIDLong = m_callbackIDFactory.Next();
-                Debug.Assert(callbackIDLong <= uint.MaxValue);
-                callbackID = (uint) callbackIDLong;
-                using var callbacks = await m_callbacks.Get();
-                callbacks.m_value.Add(callbackID, callback);;
+                callbackID = m_callbackIDFactory.Next32();
+                RegisterCallback(callback, callbackID, cancellationToken);
             }
             await SendRequest(callbackID, requestTyped);
         }
@@ -94,18 +78,6 @@ namespace ArcticFox.Tests.RPC
         public void Abort()
         {
             Close();
-        }
-        
-        public override async ValueTask CleanupAsync()
-        {
-            using (var callbacks = m_callbacks.GetSync())
-            {
-                foreach (var callbackPair in callbacks.m_value)
-                {
-                    callbackPair.Value.Cancel();
-                }
-            }
-            await base.CleanupAsync();
         }
     }
 }
