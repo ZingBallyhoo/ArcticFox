@@ -5,6 +5,7 @@ using ArcticFox.Net.Sockets;
 
 namespace ArcticFox.Net.Batching
 {
+    [Obsolete("batched sending is deprecated (there's no benefit)")]
     public class WebSocketAwareSendContext  : ISendContext
     {
         private readonly int m_maxMessageSize;

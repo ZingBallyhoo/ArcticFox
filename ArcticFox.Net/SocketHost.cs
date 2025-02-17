@@ -20,8 +20,8 @@ namespace ArcticFox.Net
 
         private readonly AsyncLockedAccess<List<HighLevelSocket>> m_sockets = new AsyncLockedAccess<List<HighLevelSocket>>(new List<HighLevelSocket>());
         
-        public bool m_batchMessages;
-        public int m_maxBatchSize = 1460 - 14; // - ws overhead
+        [Obsolete] public bool m_batchMessages;
+        [Obsolete] public int m_maxBatchSize = 1460 - 14; // - ws overhead
 
         public int m_recvBufferSize = 1024;
         

@@ -5,6 +5,7 @@ using ArcticFox.Net.Sockets;
 
 namespace ArcticFox.Net.Batching
 {
+    [Obsolete("batched sending is deprecated (there's no benefit)")]
     public class BatchedSendContext : ISendContext
     {
         private int m_maxSize => m_sharedBuffer.Length;
