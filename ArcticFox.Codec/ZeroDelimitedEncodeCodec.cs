@@ -1,13 +1,10 @@
 using System;
-using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 
 namespace ArcticFox.Codec
 {
     public class ZeroDelimitedEncodeCodec : SpanCodec<char, char>
     {
-        public static readonly ZeroDelimitedEncodeCodec s_instance = new ZeroDelimitedEncodeCodec();
-        
         public override void Input(ReadOnlySpan<char> input, ref object? state)
         {
             var countOf0 = input.Count('\0');
