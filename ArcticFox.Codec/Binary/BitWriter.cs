@@ -7,7 +7,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace ArcticFox.Codec.Binary
 {
-    public ref partial struct BitWriter
+    public ref partial struct BitWriter : IBitWriter
     {
         public readonly Span<byte> m_output;
         public int m_dataOffset { get; private set; }

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ArcticFox.Codec.Binary
 {
-    public ref partial struct ZeroTruncatedBitReader
+    public ref partial struct ZeroTruncatedBitReader : IBitReader
     {
         private BitReader m_reader;
 

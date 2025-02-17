@@ -6,7 +6,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace ArcticFox.Codec.Binary
 {
-    public ref partial struct BitReader
+    public ref partial struct BitReader : IBitReader
     {        
         private readonly ReadOnlySpan<byte> m_data;
         public int m_dataOffset { get; private set; }

@@ -156,6 +156,14 @@ namespace ArcticFox.Tests
             writer.WriteUInt64LittleEndian(123);
 
             var reader = new BitReader(writer.GetData().Span);
+            TestReaderGeneric(reader);
+            
+            var reader2 = new ZeroTruncatedBitReader(writer.GetData().Span);
+            TestReaderGeneric(reader2);
+        }
+        
+        private void TestReaderGeneric<T>(T reader) where T : IBitReader, allows ref struct
+        {
             Assert.Equal(123, reader.ReadByte());
             Assert.Equal(-123, reader.ReadSByte());
             Assert.Equal(123, reader.ReadDoubleBigEndian());
@@ -174,26 +182,6 @@ namespace ArcticFox.Tests
             Assert.Equal(123u, reader.ReadUInt32LittleEndian());
             Assert.Equal(123ul, reader.ReadUInt64BigEndian());
             Assert.Equal(123ul, reader.ReadUInt64LittleEndian());
-            
-            var reader2 = new ZeroTruncatedBitReader(writer.GetData().Span);
-            Assert.Equal(123, reader2.ReadByte());
-            Assert.Equal(-123, reader2.ReadSByte());
-            Assert.Equal(123, reader2.ReadDoubleBigEndian());
-            Assert.Equal(123, reader2.ReadDoubleLittleEndian());
-            Assert.Equal(123, reader2.ReadInt16BigEndian());
-            Assert.Equal(123, reader2.ReadInt16LittleEndian());
-            Assert.Equal(123, reader2.ReadInt32BigEndian());
-            Assert.Equal(123, reader2.ReadInt32LittleEndian());
-            Assert.Equal(123, reader2.ReadInt64BigEndian());
-            Assert.Equal(123, reader2.ReadInt64LittleEndian());
-            Assert.Equal(123, reader2.ReadSingleBigEndian());
-            Assert.Equal(123, reader2.ReadSingleLittleEndian());
-            Assert.Equal(123, reader2.ReadUInt16BigEndian());
-            Assert.Equal(123, reader2.ReadUInt16LittleEndian());
-            Assert.Equal(123u, reader2.ReadUInt32BigEndian());
-            Assert.Equal(123u, reader2.ReadUInt32LittleEndian());
-            Assert.Equal(123ul, reader2.ReadUInt64BigEndian());
-            Assert.Equal(123ul, reader2.ReadUInt64LittleEndian());
         }
 
         [Fact]

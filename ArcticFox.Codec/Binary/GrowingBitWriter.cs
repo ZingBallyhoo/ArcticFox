@@ -4,7 +4,7 @@ using CommunityToolkit.HighPerformance.Buffers;
 
 namespace ArcticFox.Codec.Binary
 {
-    public ref partial struct GrowingBitWriter
+    public ref partial struct GrowingBitWriter : IBitWriter, IDisposable
     {
         private IMemoryOwner<byte> m_memory;
         private BitWriter m_writer;
