@@ -1,4 +1,4 @@
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf
 {
     public abstract class AmfConverter
     {

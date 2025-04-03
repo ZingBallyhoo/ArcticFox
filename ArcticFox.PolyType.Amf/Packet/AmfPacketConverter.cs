@@ -1,6 +1,6 @@
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf.Packet
 {
-    public class AmfPacketConverter(AmfConverter<AmfHeader> headerConverter, AmfConverter<AmfMessage> messageConverter) : AmfConverter<AmfPacket>
+    public class AmfPacketConverter(AmfOptions options, AmfConverter<AmfHeader> headerConverter, AmfConverter<AmfMessage> messageConverter) : AmfConverter<AmfPacket>
     {
         public override void Write(ref AmfEncoder encoder, AmfPacket? value)
         {
@@ -34,7 +34,10 @@ namespace ArcticFox.PolyType.Amf.Converters
         private void ReadHeaders(ref AmfDecoder decoder, AmfPacket packet)
         {
             var headerCount = decoder.ReadUInt16();
-            if (headerCount > 10) throw new InvalidDataException(); // todo: configurable limit?
+            if (headerCount > options.m_maxHeaders)
+            {
+                throw new InvalidDataException($"number of packet headers over configured limit. {headerCount} > {options.m_maxHeaders}");
+            }
             
             packet.m_headers.EnsureCapacity(headerCount);
             for (var i = 0; i < headerCount; i++)
@@ -46,7 +49,10 @@ namespace ArcticFox.PolyType.Amf.Converters
         private void ReadMessages(ref AmfDecoder decoder, AmfPacket packet)
         {
             var messageCount = decoder.ReadUInt16();
-            if (messageCount > 10) throw new InvalidDataException(); // todo: configurable limit?
+            if (messageCount > options.m_maxMessages)
+            {
+                throw new InvalidDataException($"number of packet messages over configured limit. {messageCount} > {options.m_maxMessages}");
+            }
             
             packet.m_messages.EnsureCapacity(messageCount);
             for (var i = 0; i < messageCount; i++)

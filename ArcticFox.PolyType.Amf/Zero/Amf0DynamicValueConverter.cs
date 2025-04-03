@@ -1,18 +1,16 @@
 using System.Dynamic;
-using PolyType.Abstractions;
-using PolyType.Utilities;
+using PolyType;
 
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf.Zero
 {
-    public class Amf0DynamicValueConverter(TypeCache typeCache) : AmfConverter<object>
+    public class Amf0DynamicValueConverter(AmfOptions options, ITypeShapeProvider provider) : AmfConverter<object>
     {
         private AmfConverter ResolveConverter(Type type)
         {
-            var shape = typeCache.Provider!.Resolve(type);
-            var converter = AmfPolyType.GetConverter(shape);
+            var converter = options.GetAmf0Converter(type, provider);
             if (converter is Amf0DynamicValueConverter or null)
             {
-                throw new Exception($"unable to resolve converter for type: {shape}");
+                throw new Exception($"unable to resolve converter for type: {type}");
             }
             
             return converter;

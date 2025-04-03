@@ -1,5 +1,6 @@
 using System.Text;
 using ArcticFox.Codec.Binary;
+using ArcticFox.PolyType.Amf.Zero;
 
 namespace ArcticFox.PolyType.Amf
 {

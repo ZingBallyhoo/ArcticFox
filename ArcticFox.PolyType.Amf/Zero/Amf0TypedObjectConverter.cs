@@ -1,4 +1,4 @@
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf.Zero
 {
     public class Amf0TypedObjectConverter<T>(Amf0PropertyConverter<T>[] properties) : AmfConverter<T>
     {

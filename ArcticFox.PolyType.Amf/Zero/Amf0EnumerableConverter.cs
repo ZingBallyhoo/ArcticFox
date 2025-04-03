@@ -1,8 +1,9 @@
 using PolyType.Abstractions;
 
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf.Zero
 {
     public class Amf0EnumerableConverter<TEnumerable, TElement>(
+        AmfOptions options,
         AmfConverter<TElement> elementConverter, 
         IEnumerableTypeShape<TEnumerable, TElement> typeShape) : AmfConverter<TEnumerable>
     {
@@ -54,8 +55,10 @@ namespace ArcticFox.PolyType.Amf.Converters
                 // there must be at least 1 byte per array element
                 throw new InvalidDataException("bad array length");
             }
-            
-            if (count > 10) throw new InvalidDataException(); // todo: configurable limit?
+            if (count > options.m_maxArrayElements)
+            {
+                throw new InvalidDataException($"number of array elements over configured limit. {count} > {options.m_maxArrayElements}");
+            }
             
             var array = new TElement?[count];
             for (var i = 0; i < count; i++)

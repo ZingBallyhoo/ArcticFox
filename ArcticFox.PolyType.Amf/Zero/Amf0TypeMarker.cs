@@ -1,4 +1,4 @@
-namespace ArcticFox.PolyType.Amf
+namespace ArcticFox.PolyType.Amf.Zero
 {
     public enum Amf0TypeMarker : byte
     {
@@ -19,6 +19,6 @@ namespace ArcticFox.PolyType.Amf
         RecordSet = 14, // not supported in spec
         XmlDocument = 15,
         TypedObject = 16,
-        AvmPlusObject = 17
+        AvmPlusObject = 17,
     }
 }

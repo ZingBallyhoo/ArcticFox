@@ -1,4 +1,4 @@
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf.Packet
 {
     public class AmfMessageConverter<TBody>(AmfConverter<TBody> bodyConverter) : AmfConverter<AmfMessage>
     {

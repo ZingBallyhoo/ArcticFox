@@ -1,6 +1,6 @@
 using PolyType.Abstractions;
 
-namespace ArcticFox.PolyType.Amf.Converters
+namespace ArcticFox.PolyType.Amf.Zero
 {
     public abstract class Amf0PropertyConverter<TDeclaringType>(string name)
     {
