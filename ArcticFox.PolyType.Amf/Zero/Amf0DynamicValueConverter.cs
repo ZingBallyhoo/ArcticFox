@@ -53,6 +53,15 @@ namespace ArcticFox.PolyType.Amf.Zero
                 {
                     return ResolveConverter(typeof(ExpandoObject)).ReadAsObject(ref decoder);
                 }
+                case Amf0TypeMarker.TypedObject:
+                {
+                    var peekedName = peekDecoder.ReadUtf8();
+                    if (!options.TryGetTypedObject(peekedName, out var type))
+                    {
+                        throw new Exception($"unknown typed object: {peekedName}");
+                    }
+                    return ResolveConverter(type).ReadAsObject(ref decoder);
+                }
             }
             
             throw new Exception($"unknown marker: {peekedMarker}");

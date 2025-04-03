@@ -10,7 +10,15 @@ namespace ArcticFox.PolyType.Amf.Zero
 
         public override int Read(ref AmfDecoder decoder)
         {
-            throw new NotImplementedException();
+            var marker = decoder.ReadMarker();
+            if (marker != Amf0TypeMarker.Number)
+            {
+                throw new NotImplementedException($"unknown number(int) marker: {marker}");
+            }
+            
+            var doubleValue = decoder.ReadDouble();
+            // todo: validate that its a whole number
+            return (int)doubleValue;
         }
     }
 }

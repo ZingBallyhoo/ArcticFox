@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using ArcticFox.PolyType.Amf.Packet;
 using ArcticFox.PolyType.Amf.Zero;
 using PolyType;
@@ -44,6 +45,16 @@ namespace ArcticFox.PolyType.Amf
             m_typedObjectMonikers[typeof(T)] = typeof(T).Name;
         }
         
+        public bool TryGetTypedObject(Type type, [NotNullWhen(true)] out string? moniker)
+        {
+            return m_typedObjectMonikers.TryGetValue(type, out moniker);
+        }
+        
+        public bool TryGetTypedObject(string moniker, [NotNullWhen(true)] out Type? type)
+        {
+            return m_typedObjectTypes.TryGetValue(moniker, out type);
+        }
+        
         public bool TryGetAmf0PrimitiveConverter(Type type, [NotNullWhen(true)] out AmfConverter? converter)
         {
             if (m_amf0PrimitiveConverters.TryGetValue(type, out converter))
@@ -80,6 +91,11 @@ namespace ArcticFox.PolyType.Amf
             if (type == typeof(object))
             {
                 return ManualCacheInsert(scopedCache, typeof(object), new Amf0DynamicValueConverter(this, provider));
+            }
+            if (type == typeof(ExpandoObject))
+            {
+                var dynConverter = (AmfConverter<object>)GetAmf0Converter(typeof(object), provider);
+                return ManualCacheInsert(scopedCache, typeof(ExpandoObject), new Amf0AnonymousObjectConverter(dynConverter));
             }
             if (type == typeof(AmfPacket))
             {

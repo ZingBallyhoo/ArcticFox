@@ -1,13 +1,13 @@
 namespace ArcticFox.PolyType.Amf.Zero
 {
-    public class Amf0TypedObjectConverter<T>(Amf0PropertyConverter<T>[] properties) : AmfConverter<T>
+    public class Amf0TypedObjectConverter<T>(string moniker, Func<T> defaultConstructor, Amf0PropertyConverter<T>[] properties) : AmfConverter<T>
     {
         private readonly Amf0PropertyConverter<T>[] m_propertiesToWrite = properties.Where(prop => prop.HasGetter).ToArray();
         
         public override void Write(ref AmfEncoder encoder, T? value)
         {
             encoder.PutMarker(Amf0TypeMarker.TypedObject);
-            encoder.PutUtf8(typeof(T).Name); // todo: shape?
+            encoder.PutUtf8(moniker);
 
             foreach (var propertyConverter in m_propertiesToWrite)
             {
@@ -27,7 +27,31 @@ namespace ArcticFox.PolyType.Amf.Zero
                 throw new InvalidDataException($"expected TypedObject marker, got {marker}");
             }
             
-            throw new NotImplementedException();
+            var readMoniker = decoder.ReadUtf8();
+            if (!moniker.Equals(readMoniker))
+            {
+                throw new InvalidDataException($"wrong moniker for explicit typed object. found: {readMoniker}, expected: {moniker}");
+            }
+            
+            var inst = defaultConstructor();
+            while (true)
+            {
+                var propertyName = decoder.ReadUtf8();
+                if (propertyName.Length == 0)
+                {
+                    var propertyValueMarker = decoder.ReadMarker();
+                    if (propertyValueMarker != Amf0TypeMarker.ObjectEnd)
+                    {
+                        throw new InvalidDataException($"expected ObjectEnd, got {propertyValueMarker}");
+                    }
+                    break;
+                }
+                
+                var property = m_propertiesToWrite.Single(x => x.Name == propertyName);
+                property.Read(ref decoder, ref inst);
+            }
+            
+            return inst;
         }
     }
 }

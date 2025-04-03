@@ -25,10 +25,17 @@ namespace ArcticFox.PolyType.Amf
                 return primitiveConverter;
             }
             
-            var properties = type.Properties
-                .Select(prop => (Amf0PropertyConverter<T>)prop.Accept(this)!)
-                .ToArray();
-            return new Amf0TypedObjectConverter<T>(properties);
+            if (options.TryGetTypedObject(type.Type, out var moniker))
+            {
+                var properties = type.Properties
+                    .Select(prop => (Amf0PropertyConverter<T>)prop.Accept(this)!)
+                    .ToArray();
+                
+                var ctorShape = (IConstructorShape<T, object>)type.Constructor!;
+                return new Amf0TypedObjectConverter<T>(moniker, ctorShape.GetDefaultConstructor(), properties);
+            }
+            
+            throw new NotImplementedException($"dont know how to process type: {type.Type}");
         }
 
         public override object? VisitProperty<TDeclaringType, TPropertyType>(IPropertyShape<TDeclaringType, TPropertyType> propertyShape, object? state = null)
@@ -41,12 +48,6 @@ namespace ArcticFox.PolyType.Amf
         {
             var elementConverter = ReEnter(enumerableShape.ElementType);
             return new Amf0EnumerableConverter<TEnumerable, TElement>(options, elementConverter, enumerableShape);
-        }
-
-        public override object? VisitDictionary<TDictionary, TKey, TValue>(IDictionaryTypeShape<TDictionary, TKey, TValue> dictionaryShape, object? state = null)
-        {
-            // (ExpandoObject only)
-            return new Amf0AnonymousObjectConverter(options.GetAmf0Converter(typeof(object), generationContext.ParentCache!.Provider!));
         }
     }
 }
