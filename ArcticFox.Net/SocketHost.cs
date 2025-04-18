@@ -25,16 +25,16 @@ namespace ArcticFox.Net
 
         public int m_recvBufferSize = 1024;
         
-        public virtual ValueTask StartAsync(CancellationToken cancellationToken=default)
+        public virtual Task StartAsync(CancellationToken cancellationToken=default)
         {
             Task.Factory.StartNew(async () =>
             {
                 await UpdateThread(GetCancellationToken());
             }, TaskCreationOptions.LongRunning);
-            return ValueTask.CompletedTask;
+            return Task.CompletedTask;
         }
         
-        public Task StopAsync(CancellationToken cancellationToken=default)
+        public virtual Task StopAsync(CancellationToken cancellationToken=default)
         {
             m_cancellationTokenSource.Cancel();
             // Defer completion promise, until our application has reported it is done.

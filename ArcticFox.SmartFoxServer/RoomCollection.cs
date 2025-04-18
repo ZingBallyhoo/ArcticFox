@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Async;
@@ -45,6 +46,11 @@ namespace ArcticFox.SmartFoxServer
         {
             m_roomsByName.TryGetValue(name, out var room);
             return Task.FromResult(room);
+        }
+        
+        public IEnumerable<Room> GetRooms()
+        {
+            return m_roomsByName.Values.AsEnumerable();
         }
     }
 }

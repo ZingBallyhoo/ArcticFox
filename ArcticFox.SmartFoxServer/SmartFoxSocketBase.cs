@@ -17,6 +17,7 @@ namespace ArcticFox.SmartFoxServer
 
         public async ValueTask<User> CreateUser(string zoneName, string name)
         {
+            if (m_user != null) throw new InvalidOperationException("socket already has user");
             var user = await m_manager.CreateUser(name, this, zoneName);
             m_user = user;
             return user;

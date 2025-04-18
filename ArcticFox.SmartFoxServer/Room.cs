@@ -32,7 +32,7 @@ namespace ArcticFox.SmartFoxServer
 
         private readonly ISystemHandler m_systemHandler;
         
-        private readonly RoomDescription m_description;
+        public readonly RoomDescription m_description;
         private readonly AsyncLockedAccess<Dictionary<ulong, User>> m_users;
         
         public readonly Func<NetEvent, User, ValueTask> m_userExcludeFilter;
@@ -113,6 +113,20 @@ namespace ArcticFox.SmartFoxServer
             
             return newCount;
         }
+        
+        public async ValueTask RemoveAllUsers()
+        {
+            User[] copiedUserList;
+            using (var users = await m_users.Get())
+            {
+                copiedUserList = users.m_value.Values.ToArray();
+            }
+            
+            foreach (var user in copiedUserList)
+            {
+                await user.RemoveFromRoom(this);
+            }
+        }
 
         public async ValueTask Shutdown()
         {
@@ -141,6 +155,12 @@ namespace ArcticFox.SmartFoxServer
                 return users.m_value.Select(x => x.Value.GetUserData<T>()).ToArray();
             }
         }
+        
+        public async ValueTask<int> GetUserCount()
+        {
+            using var users = await m_users.Get();
+            return users.m_value.Count;
+        }
 
         private async ValueTask UserExcludeFilter(NetEvent ne, User excludeUser)
         {
@@ -164,6 +184,12 @@ namespace ArcticFox.SmartFoxServer
         public void SetData(object data)
         {
             m_data = data;
+        }
+        
+        public T? GetDataAs<T>() where T : class
+        {
+            var data = m_data;
+            return data as T;
         }
 
         public T GetData<T>()

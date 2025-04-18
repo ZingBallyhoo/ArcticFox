@@ -124,6 +124,12 @@ namespace ArcticFox.SmartFoxServer
             if (userData == null) throw new NullReferenceException(nameof(m_userData));
             return (T)userData!;
         }
+        
+        public T? GetUserDataAs<T>() where T : class
+        {
+            var data = m_userData;
+            return data as T;
+        }
 
         public async ValueTask Shutdown()
         {

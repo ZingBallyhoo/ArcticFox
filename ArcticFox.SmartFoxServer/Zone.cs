@@ -27,8 +27,8 @@ namespace ArcticFox.SmartFoxServer
 
         public void AddUser(User user)
         {
-            m_usersByID.Add(user.m_id, user);
             m_usersByName.Add(user.m_name, user);
+            m_usersByID.Add(user.m_id, user);
             if (user.m_socket != null) m_usersBySocket.Add(user.m_socket, user);
             
             using (Computed.Invalidate())
@@ -41,8 +41,8 @@ namespace ArcticFox.SmartFoxServer
 
         public void RemoveUser(User user)
         {
-            m_usersByID.Remove(user.m_id);
             m_usersByName.Remove(user.m_name);
+            m_usersByID.Remove(user.m_id);
             if (user.m_socket != null) m_usersBySocket.Remove(user.m_socket);
             
             using (Computed.Invalidate())
@@ -181,6 +181,11 @@ namespace ArcticFox.SmartFoxServer
         {
             using var rooms = await m_rooms.Get();
             return await rooms.m_value.GetByName(name);
+        }
+        
+        public async Task<AsyncLockedAccess<RoomCollection>.Token> GetRooms()
+         {
+            return await m_rooms.Get();
         }
     }
 }
