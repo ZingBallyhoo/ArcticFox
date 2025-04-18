@@ -4,15 +4,12 @@ namespace ArcticFox.PolyType.Amf
     {
         internal AmfConverter() { }
         
-        public abstract Type Type { get; }
-        
         public abstract void WriteAsObject(ref AmfEncoder encoder, object? value);
         public abstract object? ReadAsObject(ref AmfDecoder decoder);
     }
     
     public abstract class AmfConverter<T> : AmfConverter
     {
-        public sealed override Type Type => typeof(T);
         public abstract void Write(ref AmfEncoder encoder, T? value);
         public abstract T? Read(ref AmfDecoder decoder);
 
