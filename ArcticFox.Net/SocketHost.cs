@@ -155,8 +155,7 @@ namespace ArcticFox.Net
                 }
             } catch (Exception e)
             {
-                // todo: exception handling
-                await Console.Out.WriteLineAsync(e.ToString());
+                hl.HandleException(e);
             } finally
             {
                 hl.Close();

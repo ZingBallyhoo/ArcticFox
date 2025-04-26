@@ -64,6 +64,12 @@ namespace ArcticFox.Net
             return m_netEventQueue.FlushEventsToSocket(m_socket, ctx);
         }
         
+        public virtual void HandleException(Exception e)
+        {
+            // todo: ... exception handling
+            Console.Out.WriteLine(e.ToString());
+        }
+        
         public ValueTask BroadcastEvent(NetEvent ev)
         {
             if (m_hasPreNetTransform)
