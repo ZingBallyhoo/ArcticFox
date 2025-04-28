@@ -27,6 +27,7 @@ namespace ArcticFox.Net.Sockets
 
         public void Close()
         {
+            if (m_closed) return;
             m_closed = true;
             m_cancellationTokenSource.Cancel();
         }
