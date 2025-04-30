@@ -15,8 +15,13 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
             if (value == null) return;
             
             var dictionary = getDictionary(value);
+            
+            var first = true;
             foreach (var pair in dictionary)
             {
+                if (first) first = false;
+                else encoder.m_writer.Append(encoder.m_options.m_nextPropertyDelimiter);
+                
                 keyConverter.Write(ref encoder, pair.Key);
                 encoder.m_writer.Append(encoder.m_options.m_keyValueDelimiter);
                 valueConverter.Write(ref encoder, pair.Value);

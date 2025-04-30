@@ -29,8 +29,12 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         
         public override void Write(ref FormEncoder encoder, T? value)
         {
+            var first = true;
             foreach (var property in m_propertiesToWrite)
             {
+                if (first) first = false;
+                else encoder.m_writer.Append(encoder.m_options.m_nextPropertyDelimiter);
+                
                 encoder.WriteEncodedKey(property.Name);
                 encoder.m_writer.Append(encoder.m_options.m_keyValueDelimiter);
                 property.Write(ref encoder, ref value!);

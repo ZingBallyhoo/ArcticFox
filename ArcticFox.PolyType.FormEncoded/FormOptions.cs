@@ -22,6 +22,11 @@ namespace ArcticFox.PolyType.FormEncoded
             // todo: delay
         };
         
+        public T Deserialize<T>(string text) where T : IShapeable<T>
+        {
+            return Deserialize<T>(text.AsSpan());
+        }
+        
         public T Deserialize<T>(ReadOnlySpan<char> text) where T : IShapeable<T>
         {
             var converter = (FormConverter<T>)m_cache.GetOrAdd(T.GetShape())!;
@@ -31,6 +36,19 @@ namespace ArcticFox.PolyType.FormEncoded
                 m_options = this
             };
             return converter.Read(ref decoder, text)!;
+        }
+        
+        public string Serialize<T>(T? value) where T : IShapeable<T>
+        {
+            var converter = (FormConverter<T>)m_cache.GetOrAdd(T.GetShape())!;
+            
+            var encoder = new FormEncoder
+            {
+                m_options = this,
+                m_writer = new StringBuilder()
+            };
+            converter.Write(ref encoder, value);
+            return encoder.m_writer.ToString();
         }
     }
     
@@ -65,7 +83,9 @@ namespace ArcticFox.PolyType.FormEncoded
         {
             if (data.IndexOfAnyExcept(UriHelper.UnreservedReserved) == -1)
             {
+                // if we got here, definitely cant contain a space (so no need to check)
                 m_writer.Append(data);
+                return;
             }
             
             var dataString = Uri.EscapeDataString(data);

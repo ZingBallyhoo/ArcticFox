@@ -30,7 +30,15 @@ namespace ArcticFox.PolyType.FormEncoded
                 return new FormStringValueConverter();
             }
             
+            if (type.Type == typeof(sbyte)) return new SimpleFormConverter<sbyte>();
+            if (type.Type == typeof(byte)) return new SimpleFormConverter<byte>();
+            if (type.Type == typeof(short)) return new SimpleFormConverter<short>();
+            if (type.Type == typeof(ushort)) return new SimpleFormConverter<ushort>();
             if (type.Type == typeof(int)) return new SimpleFormConverter<int>();
+            if (type.Type == typeof(uint)) return new SimpleFormConverter<uint>();
+            if (type.Type == typeof(long)) return new SimpleFormConverter<long>();
+            if (type.Type == typeof(ulong)) return new SimpleFormConverter<ulong>();
+            if (type.Type == typeof(float)) return new SimpleFormConverter<float>();
             if (type.Type == typeof(double)) return new SimpleFormConverter<double>();
             
             if (type.Type == typeof(bool)) return new FormBoolConverter();
@@ -46,6 +54,20 @@ namespace ArcticFox.PolyType.FormEncoded
         {
             var propertyConverter = ReEnter(propertyShape.PropertyType);
             return new FormPropertyConverter<TDeclaringType, TPropertyType>(propertyShape, propertyConverter);
+        }
+
+        public override object? VisitEnum<TEnum, TUnderlying>(IEnumTypeShape<TEnum, TUnderlying> enumShape, object? state = null)
+        {
+            return new FormEnumConverter<TEnum, TUnderlying>
+            {
+                m_underlying = ReEnter(enumShape.UnderlyingType)
+            };
+        }
+
+        public override object? VisitEnumerable<TEnumerable, TElement>(IEnumerableTypeShape<TEnumerable, TElement> enumerableShape, object? state = null)
+        {
+            var elementConverter = ReEnter(enumerableShape.ElementType);
+            return new FormEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape);
         }
 
         public override object? VisitDictionary<TDictionary, TKey, TValue>(IDictionaryTypeShape<TDictionary, TKey, TValue> dictionaryShape, object? state = null)

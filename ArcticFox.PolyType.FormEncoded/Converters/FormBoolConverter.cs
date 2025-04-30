@@ -6,6 +6,8 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         {
             return value switch
             {
+                "0" => false,
+                "1" => true,
                 "true" => true,
                 "false" => false,
                 _ => throw new InvalidDataException($"unknown bool token: \"{value}\"")
@@ -14,7 +16,7 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         
         public override void Write(ref FormEncoder encoder, bool value)
         {
-            throw new NotImplementedException();
+            encoder.m_writer.Append(value ? '1' : '0');
         }
     }
 }
