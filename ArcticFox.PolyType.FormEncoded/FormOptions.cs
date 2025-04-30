@@ -38,9 +38,9 @@ namespace ArcticFox.PolyType.FormEncoded
             return converter.Read(ref decoder, text)!;
         }
         
-        public string Serialize<T>(T? value) where T : IShapeable<T>
+        public string Serialize2<T, TProvider>(T? value) where TProvider : IShapeable<T>
         {
-            var converter = (FormConverter<T>)m_cache.GetOrAdd(T.GetShape())!;
+            var converter = (FormConverter<T>)m_cache.GetOrAdd(TProvider.GetShape())!;
             
             var encoder = new FormEncoder
             {
@@ -49,6 +49,11 @@ namespace ArcticFox.PolyType.FormEncoded
             };
             converter.Write(ref encoder, value);
             return encoder.m_writer.ToString();
+        }
+        
+        public string Serialize<T>(T value) where T : IShapeable<T>
+        {
+            return Serialize2<T, T>(value);
         }
     }
     
