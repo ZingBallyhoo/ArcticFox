@@ -67,7 +67,13 @@ namespace ArcticFox.PolyType.FormEncoded
         public override object? VisitEnumerable<TEnumerable, TElement>(IEnumerableTypeShape<TEnumerable, TElement> enumerableShape, object? state = null)
         {
             var elementConverter = ReEnter(enumerableShape.ElementType);
-            return new FormEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape);
+            return enumerableShape.ConstructionStrategy switch
+            {
+                CollectionConstructionStrategy.Mutable => new FormMutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
+                CollectionConstructionStrategy.Enumerable => new FormImmutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
+                CollectionConstructionStrategy.Span => new FormImmutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
+                _ => new FormEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape)
+            };
         }
 
         public override object? VisitDictionary<TDictionary, TKey, TValue>(IDictionaryTypeShape<TDictionary, TKey, TValue> dictionaryShape, object? state = null)
