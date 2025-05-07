@@ -1,4 +1,4 @@
-namespace ArcticFox.PolyType.FormEncoded.Converters
+namespace ArcticFox.PolyType.FormEncoded
 {
     public ref struct FormEnumerator
     {

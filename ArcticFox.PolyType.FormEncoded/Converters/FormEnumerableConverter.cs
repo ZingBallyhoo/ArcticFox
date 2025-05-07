@@ -45,6 +45,8 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
             
             foreach (var subRange in value.Split(decoder.m_options.m_nextValueDelimiter))
             {
+                if (value.Length == 0) break; // whole input is empty string
+                
                 var rangeSpan = value[subRange];
                 m_addDelegate(ref result, m_elementConverter.Read(ref decoder, rangeSpan)!);
             }
@@ -64,6 +66,8 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
             
             foreach (var subRange in value.Split(decoder.m_options.m_nextValueDelimiter))
             {
+                if (value.Length == 0) break; // whole input is empty string
+                
                 var rangeSpan = value[subRange];
                 list.Add(m_elementConverter.Read(ref decoder, rangeSpan)!);
             }

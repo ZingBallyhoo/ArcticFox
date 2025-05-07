@@ -4,7 +4,7 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
     {
         public override string? Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
         {
-            return decoder.DecodeValue(value).ToString();
+            return value.ToString();
         }
         
         public override void Write(ref FormEncoder encoder, string? value)

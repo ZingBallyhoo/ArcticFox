@@ -20,8 +20,9 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
                     if (!decoder.m_options.m_throwOnUnknownFields) continue;
                     throw new InvalidDataException($"{typeof(T)}: unknown field \"{nameSpan}\"");
                 }
-                    
-                property.Read(ref decoder, valueSpan, ref inst);
+                
+                var decodedValueSpan = decoder.DecodeValue(valueSpan);
+                property.Read(ref decoder, decodedValueSpan, ref inst);
             }
                 
             return inst;
