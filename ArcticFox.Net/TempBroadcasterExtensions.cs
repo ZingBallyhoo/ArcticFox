@@ -19,6 +19,16 @@ namespace ArcticFox.Net
                 return new CodecChain<char, byte>(chain);
             });
         
+        private static readonly Lazy<CodecChain<char, byte>> s_zeroTerminatedStringToBytesCodec =
+            new Lazy<CodecChain<char, byte>>(() =>
+            {
+                var chain = new CodecChain();
+                chain.AddCodec(new ZeroDelimitedEncodeCodec());
+                chain.AddCodec(new TextEncodeCodec(Encoding.ASCII));
+                chain.AddCodec(ArrayFactory<byte>.s_instance);
+                return new CodecChain<char, byte>(chain);
+            });
+        
         public static ValueTask BroadcastZeroTerminatedAscii<T>(this T bc, ReadOnlySpan<char> msg) where T: IBroadcaster
         {
             object? ev = null;
@@ -35,6 +45,15 @@ namespace ArcticFox.Net
             Debug.Assert(ev != null);
             var netEv = (NetEvent) ev;
             return bc.BroadcastEventOwningCreation(netEv);
+        }
+        
+        public static byte[] SerializeZeroTerminatedAscii(ReadOnlySpan<char> msg)
+        {
+            object? state = null;
+            s_zeroTerminatedStringToBytesCodec.Value.Input(msg, ref state);
+            Debug.Assert(state != null);
+            
+            return (byte[])state;
         }
     }
 }
