@@ -18,6 +18,11 @@ namespace ArcticFox.PolyType.Amf
             m_writer.WriteByte((byte)marker);
         }
         
+        public void PutUInt8(byte value)
+        {
+            m_writer.WriteByte(value);
+        }
+        
         public void PutUInt16(ushort value)
         {
             m_writer.WriteUInt16BigEndian(value);

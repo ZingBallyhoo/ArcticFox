@@ -28,7 +28,8 @@ namespace ArcticFox.PolyType.Amf
             {
                 { typeof(string), new Amf0StringConverter() },
                 { typeof(double), new Amf0NumberConverter() },
-                { typeof(int), new Amf0IntConverter() }
+                { typeof(int), new Amf0IntConverter() },
+                { typeof(bool), new Amf0BoolConverter() }
             };
             m_amf0ConverterCaches = new MultiProviderTypeCache
             {
