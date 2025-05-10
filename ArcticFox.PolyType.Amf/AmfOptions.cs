@@ -27,8 +27,16 @@ namespace ArcticFox.PolyType.Amf
             m_amf0PrimitiveConverters = new Dictionary<Type, AmfConverter>
             {
                 { typeof(string), new Amf0StringConverter() },
-                { typeof(double), new Amf0NumberConverter() },
-                { typeof(int), new Amf0IntConverter() },
+                { typeof(float), new Amf0NumberConverter<float>() },
+                { typeof(double), new Amf0NumberConverter<double>() },
+                { typeof(int), new Amf0NumberConverter<sbyte>() },
+                { typeof(uint), new Amf0NumberConverter<byte>() },
+                { typeof(int), new Amf0NumberConverter<short>() },
+                { typeof(uint), new Amf0NumberConverter<ushort>() },
+                { typeof(int), new Amf0NumberConverter<int>() },
+                { typeof(uint), new Amf0NumberConverter<uint>() },
+                { typeof(int), new Amf0NumberConverter<long>() },
+                { typeof(uint), new Amf0NumberConverter<ulong>() },
                 { typeof(bool), new Amf0BoolConverter() }
             };
             m_amf0ConverterCaches = new MultiProviderTypeCache
