@@ -36,7 +36,7 @@ namespace ArcticFox.Net.Sockets
             var result = await m_webSocket.ReceiveAsync(buffer, m_cancellationTokenSource.Token);
             m_lastRecvWasEndOfMessage = result.EndOfMessage;
             
-            if (result.MessageType == WebSocketMessageType.Close)
+            if (m_webSocket.CloseStatus.HasValue)
             {
                 Close();
                 return 0;
