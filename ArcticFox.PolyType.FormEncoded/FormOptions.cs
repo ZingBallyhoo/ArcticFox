@@ -6,6 +6,8 @@ namespace ArcticFox.PolyType.FormEncoded
 {
     public class FormOptions
     {
+        public static FormOptions Default = new FormOptions();
+        
         public bool m_encodeKeys = true;
         public bool m_encodeValues = true;
         public bool m_encodeSpacesAsPlus = false;
