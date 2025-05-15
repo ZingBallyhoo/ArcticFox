@@ -44,6 +44,14 @@ namespace ArcticFox.PolyType.Amf
             return new Amf0PropertyConverter<TDeclaringType, TPropertyType>(propertyShape, propertyConverter);
         }
         
+        public override object? VisitEnum<TEnum, TUnderlying>(IEnumTypeShape<TEnum, TUnderlying> enumShape, object? state = null)
+        {
+            return new Amf0EnumConverter<TEnum, TUnderlying>
+            {
+                m_underlying = ReEnter(enumShape.UnderlyingType)
+            };
+        }
+        
         public override object? VisitEnumerable<TEnumerable, TElement>(IEnumerableTypeShape<TEnumerable, TElement> enumerableShape, object? state)
         {
             var elementConverter = ReEnter(enumerableShape.ElementType);
