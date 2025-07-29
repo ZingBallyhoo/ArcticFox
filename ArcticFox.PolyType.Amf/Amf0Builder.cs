@@ -27,12 +27,7 @@ namespace ArcticFox.PolyType.Amf
             
             if (options.TryGetTypedObject(type.Type, out var moniker))
             {
-                var properties = type.Properties
-                    .Select(prop => (Amf0PropertyConverter<T>)prop.Accept(this)!)
-                    .ToArray();
-                
-                var ctorShape = (IConstructorShape<T, object>)type.Constructor!;
-                return new Amf0TypedObjectConverter<T>(moniker, ctorShape.GetDefaultConstructor(), properties);
+                return type.Constructor!.Accept(this, state: moniker);
             }
             
             throw new NotImplementedException($"dont know how to process type: {type.Type}");
@@ -43,7 +38,17 @@ namespace ArcticFox.PolyType.Amf
             var propertyConverter = ReEnter(propertyShape.PropertyType);
             return new Amf0PropertyConverter<TDeclaringType, TPropertyType>(propertyShape, propertyConverter);
         }
-        
+
+        public override object? VisitConstructor<TDeclaringType, TArgumentState>(IConstructorShape<TDeclaringType, TArgumentState> constructorShape, object? state = null)
+        {
+            var properties = constructorShape.DeclaringType.Properties
+                .Select(prop => (Amf0PropertyConverter<TDeclaringType>)prop.Accept(this)!)
+                .ToArray();
+            
+            var moniker = (string)state!;
+            return new Amf0TypedObjectConverter<TDeclaringType>(moniker, constructorShape.GetDefaultConstructor(), properties);
+        }
+
         public override object? VisitEnum<TEnum, TUnderlying>(IEnumTypeShape<TEnum, TUnderlying> enumShape, object? state = null)
         {
             return new Amf0EnumConverter<TEnum, TUnderlying>

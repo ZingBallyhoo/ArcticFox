@@ -47,7 +47,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             }
         }
         
-        private TEnumerable? ReadStrictArray(ref AmfDecoder decoder)
+        private TEnumerable ReadStrictArray(ref AmfDecoder decoder)
         {
             var count = decoder.ReadUInt32();
             if (count > decoder.GetRemainingBytes())
@@ -60,13 +60,13 @@ namespace ArcticFox.PolyType.Amf.Zero
                 throw new InvalidDataException($"number of array elements over configured limit. {count} > {options.m_maxArrayElements}");
             }
             
-            var array = new TElement?[count];
+            var array = new TElement[count];
             for (var i = 0; i < count; i++)
             {
-                array[i] = elementConverter.Read(ref decoder);
+                array[i] = elementConverter.Read(ref decoder)!;
             }
             
-            return typeShape.GetSpanConstructor()(array);
+            return typeShape.GetParameterizedConstructor()(array);
         }
     }
 }

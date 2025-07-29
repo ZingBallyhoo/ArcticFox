@@ -33,17 +33,22 @@ namespace ArcticFox.PolyType.Amf
                     return new BuiltInConverter<T>();
                 }
                 
-                var ctorShape = (IConstructorShape<T, object>)type.Constructor!;
-                var properties = type.Properties
-                    .Select(prop => (PropertyConverter<T>)prop.Accept(this)!)
-                    .ToArray();
-                return new ObjectConverter<T>(ctorShape.GetDefaultConstructor(), properties);
+                return type.Constructor!.Accept(this);
             }
 
             public override object? VisitProperty<TDeclaringType, TPropertyType>(IPropertyShape<TDeclaringType, TPropertyType> propertyShape, object? state = null)
             {
                 var propertyConverter = ReEnter(propertyShape.PropertyType);
                 return new PropertyConverter<TDeclaringType, TPropertyType>(propertyShape, propertyConverter);
+            }
+
+            public override object? VisitConstructor<TDeclaringType, TArgumentState>(IConstructorShape<TDeclaringType, TArgumentState> constructorShape, object? state = null)
+            {
+                var properties = constructorShape.DeclaringType.Properties
+                    .Select(prop => (PropertyConverter<TDeclaringType>)prop.Accept(this)!)
+                    .ToArray();
+                
+                return new ObjectConverter<TDeclaringType>(constructorShape.GetDefaultConstructor(), properties);
             }
 
             public override object? VisitEnum<TEnum, TUnderlying>(IEnumTypeShape<TEnum, TUnderlying> enumShape, object? state = null)

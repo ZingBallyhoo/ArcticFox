@@ -43,17 +43,22 @@ namespace ArcticFox.PolyType.FormEncoded
             
             if (type.Type == typeof(bool)) return new FormBoolConverter();
                 
-            var ctorShape = (IConstructorShape<T, object>)type.Constructor!;
-            var properties = type.Properties
-                .Select(prop => (FormPropertyConverter<T>)prop.Accept(this)!)
-                .ToArray();
-            return new FormObjectConverter<T>(ctorShape.GetDefaultConstructor(), properties);
+            return type.Constructor!.Accept(this);
         }
         
         public override object? VisitProperty<TDeclaringType, TPropertyType>(IPropertyShape<TDeclaringType, TPropertyType> propertyShape, object? state = null)
         {
             var propertyConverter = ReEnter(propertyShape.PropertyType);
             return new FormPropertyConverter<TDeclaringType, TPropertyType>(propertyShape, propertyConverter);
+        }
+
+        public override object? VisitConstructor<TDeclaringType, TArgumentState>(IConstructorShape<TDeclaringType, TArgumentState> constructorShape, object? state = null)
+        {
+            var properties = constructorShape.DeclaringType.Properties
+                .Select(prop => (FormPropertyConverter<TDeclaringType>)prop.Accept(this)!)
+                .ToArray();
+            
+            return new FormObjectConverter<TDeclaringType>(constructorShape.GetDefaultConstructor(), properties);
         }
 
         public override object? VisitEnum<TEnum, TUnderlying>(IEnumTypeShape<TEnum, TUnderlying> enumShape, object? state = null)
@@ -70,8 +75,7 @@ namespace ArcticFox.PolyType.FormEncoded
             return enumerableShape.ConstructionStrategy switch
             {
                 CollectionConstructionStrategy.Mutable => new FormMutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
-                CollectionConstructionStrategy.Enumerable => new FormImmutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
-                CollectionConstructionStrategy.Span => new FormImmutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
+                CollectionConstructionStrategy.Parameterized => new FormImmutableEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape),
                 _ => new FormEnumerableConverter<TEnumerable, TElement>(elementConverter, enumerableShape)
             };
         }

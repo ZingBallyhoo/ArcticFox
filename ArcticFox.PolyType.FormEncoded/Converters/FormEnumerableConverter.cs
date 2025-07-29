@@ -36,12 +36,13 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         IEnumerableTypeShape<TEnumerable, TElement> typeShape)
         : FormEnumerableConverter<TEnumerable, TElement>(elementConverter, typeShape)
     {
-        private readonly Func<TEnumerable> m_createObject = typeShape.GetDefaultConstructor();
-        private readonly Setter<TEnumerable, TElement> m_addDelegate = typeShape.GetAddElement();
+        private readonly MutableCollectionConstructor<TElement, TEnumerable> m_mutableCtor = typeShape.GetMutableConstructor();
+        private readonly EnumerableAppender<TEnumerable, TElement> m_addDelegate = typeShape.GetAppender();
         
-        public override TEnumerable? Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
+        public override TEnumerable Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
         {
-            var result = m_createObject();
+            // todo: initial capacity?
+            var result = m_mutableCtor();
             
             foreach (var subRange in value.Split(decoder.m_options.m_nextValueDelimiter))
             {
@@ -60,8 +61,12 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         IEnumerableTypeShape<TEnumerable, TElement> typeShape)
         : FormEnumerableConverter<TEnumerable, TElement>(elementConverter, typeShape)
     {
-        public override TEnumerable? Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
+        private readonly ParameterizedCollectionConstructor<TElement, TElement, TEnumerable> m_spanCtor = typeShape.GetParameterizedConstructor();
+        
+        public override TEnumerable Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
         {
+            // todo: initial capacity?
+            // todo: or, reduce code duplication?
             var list = new List<TElement>();
             
             foreach (var subRange in value.Split(decoder.m_options.m_nextValueDelimiter))
@@ -72,12 +77,7 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
                 list.Add(m_elementConverter.Read(ref decoder, rangeSpan)!);
             }
             
-            return typeShape.ConstructionStrategy switch
-            {
-                CollectionConstructionStrategy.Span => typeShape.GetSpanConstructor()(CollectionsMarshal.AsSpan(list)),
-                CollectionConstructionStrategy.Enumerable => typeShape.GetEnumerableConstructor()(list),
-                _ => throw new NotImplementedException($"can't construct enumerable: {typeShape}. {typeShape.ConstructionStrategy}")
-            };
+            return m_spanCtor(CollectionsMarshal.AsSpan(list));
         }
     }
 }
