@@ -22,15 +22,13 @@ namespace ArcticFox.Codec
             return (ISpanConsumer<T>)m_head;
         }
 
-        public CodecChain AddCodec(object next)
+        public CodecChain AddCodec<TTo>(ISpanConsumer<TTo> next)
         {
             if (m_head == null) m_head = next;
             if (m_tail != null)
             {
-                // todo: reflection in 2021 oh no
-                var nextField = m_tail.GetType().GetField("m_next");
-                Debug.Assert(nextField != null);
-                nextField.SetValue(m_tail, next);
+                var tailChain = (SpanCodecBase<TTo>)m_tail;
+                tailChain.m_next = next;
             }
             m_tail = next;
             

@@ -2,10 +2,13 @@ using System;
 
 namespace ArcticFox.Codec
 {
-    public abstract class SpanCodec<TFrom, TTo> : ISpanConsumer<TFrom>
+    public abstract class SpanCodecBase<TTo>
     {
         public ISpanConsumer<TTo> m_next;
-        
+    }
+    
+    public abstract class SpanCodec<TFrom, TTo> : SpanCodecBase<TTo>, ISpanConsumer<TFrom>
+    {
         public abstract void Input(ReadOnlySpan<TFrom> input, ref object? state);
 
         public void CodecOutput(ReadOnlySpan<TTo> output, ref object? state)

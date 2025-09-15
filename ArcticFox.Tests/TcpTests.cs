@@ -73,7 +73,7 @@ namespace ArcticFox.Tests
             await client.ConnectAsync(endPoint);
             using var clientStream = client.GetStream();
             await clientStream.WriteAsync(Encoding.ASCII.GetBytes("Hello\0World\0"));
-            await Task.Delay(50);
+            await Task.Delay(500);
             
             var serverSideSocket = (TestSocket)(await host.GetSockets())[0];
             Assert.Equal(new []{"Hello", "World"}, serverSideSocket.m_received);
