@@ -116,7 +116,7 @@ namespace ArcticFox.PolyType.Amf
                 
                 return ManualCacheInsert(scopedCache, typeof(AmfPacket), packetConverter);
             }
-            return (AmfConverter)m_amf0ConverterCaches.GetOrAdd(provider.Resolve(type))!;
+            return (AmfConverter)m_amf0ConverterCaches.GetOrAdd(provider.GetTypeShapeOrThrow(type))!;
         }
     }
 }

@@ -1,4 +1,5 @@
 using ArcticFox.PolyType.FormEncoded.Converters;
+using PolyType;
 using PolyType.Abstractions;
 using PolyType.Utilities;
 

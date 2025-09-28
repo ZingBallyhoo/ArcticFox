@@ -31,7 +31,7 @@ namespace ArcticFox.PolyType.FormEncoded
         
         public T Deserialize<T>(ReadOnlySpan<char> text) where T : IShapeable<T>
         {
-            var converter = (FormConverter<T>)m_cache.GetOrAdd(T.GetShape())!;
+            var converter = (FormConverter<T>)m_cache.GetOrAdd(T.GetTypeShape())!;
             
             var decoder = new FormDecoder
             {
@@ -42,7 +42,7 @@ namespace ArcticFox.PolyType.FormEncoded
         
         public string Serialize2<T, TProvider>(T? value) where TProvider : IShapeable<T>
         {
-            var converter = (FormConverter<T>)m_cache.GetOrAdd(TProvider.GetShape())!;
+            var converter = (FormConverter<T>)m_cache.GetOrAdd(TProvider.GetTypeShape())!;
             
             var encoder = new FormEncoder
             {

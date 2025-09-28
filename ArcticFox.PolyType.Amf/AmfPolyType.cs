@@ -21,7 +21,7 @@ namespace ArcticFox.PolyType.Amf
         }
         public static byte[] Serialize<T, TProvider>(T value, AmfOptions options) where TProvider : IShapeable<T>
         {
-            return Serialize(value, options, TProvider.GetShape().Provider);
+            return Serialize(value, options, TProvider.GetTypeShape().Provider);
         }
         
         public static byte[] Serialize<T>(T value, AmfOptions options) where T : IShapeable<T>
@@ -39,7 +39,7 @@ namespace ArcticFox.PolyType.Amf
         
         public static T Deserialize<T, TProvider>(scoped ReadOnlySpan<byte> data, AmfOptions options) where TProvider : IShapeable<T>
         {
-            return Deserialize<T>(data, options, TProvider.GetShape().Provider);
+            return Deserialize<T>(data, options, TProvider.GetTypeShape().Provider);
         }
         
         public static T Deserialize<T>(scoped ReadOnlySpan<byte> data, AmfOptions options) where T : IShapeable<T>

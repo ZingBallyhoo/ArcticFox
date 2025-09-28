@@ -36,7 +36,7 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         IEnumerableTypeShape<TEnumerable, TElement> typeShape)
         : FormEnumerableConverter<TEnumerable, TElement>(elementConverter, typeShape)
     {
-        private readonly MutableCollectionConstructor<TElement, TEnumerable> m_mutableCtor = typeShape.GetMutableConstructor();
+        private readonly MutableCollectionConstructor<TElement, TEnumerable> m_mutableCtor = typeShape.GetDefaultConstructor();
         private readonly EnumerableAppender<TEnumerable, TElement> m_addDelegate = typeShape.GetAppender();
         
         public override TEnumerable Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
