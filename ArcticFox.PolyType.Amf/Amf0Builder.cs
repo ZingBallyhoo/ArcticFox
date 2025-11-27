@@ -25,6 +25,10 @@ namespace ArcticFox.PolyType.Amf
             {
                 return primitiveConverter;
             }
+            if (typeof(T) == typeof(object))
+            {
+                return new Amf0DynamicValueConverter(options, type.Provider);
+            }
             
             if (options.TryGetTypedObject(type.Type, out var moniker))
             {

@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Runtime.CompilerServices;
 using ArcticFox.PolyType.Amf.Packet;
 using ArcticFox.PolyType.Amf.Zero;
 using PolyType;
-using PolyType.Abstractions;
 using PolyType.Utilities;
 
 namespace ArcticFox.PolyType.Amf
@@ -20,6 +20,8 @@ namespace ArcticFox.PolyType.Amf
         private readonly Dictionary<Type, string> m_typedObjectMonikers = new Dictionary<Type, string>();
         
         private readonly MultiProviderTypeCache m_amf0ConverterCaches;
+        private readonly ConditionalWeakTable<ITypeShapeProvider, AmfBuiltinConverters> m_builtinConverterCaches;
+        
         private readonly Dictionary<Type, AmfConverter> m_amf0PrimitiveConverters;
         
         public AmfOptions()
@@ -39,11 +41,13 @@ namespace ArcticFox.PolyType.Amf
                 { typeof(ulong), new Amf0NumberConverter<ulong>() },
                 { typeof(bool), new Amf0BoolConverter() }
             };
+            
             m_amf0ConverterCaches = new MultiProviderTypeCache
             {
                 ValueBuilderFactory = ctx => new Amf0Builder(ctx, this)
                 // todo: delay
             };
+            m_builtinConverterCaches = new ConditionalWeakTable<ITypeShapeProvider, AmfBuiltinConverters>();
         }
         
         public void AddTypedObject<T>() where T : IShapeable<T>
@@ -78,12 +82,6 @@ namespace ArcticFox.PolyType.Amf
             return false;
         }
         
-        private static AmfConverter ManualCacheInsert(TypeCache cache, Type type, AmfConverter converter)
-        {
-            cache.TryAdd(type, converter);
-            return converter;
-        }
-        
         public AmfConverter GetAmf0Converter(Type type, ITypeShapeProvider provider)
         {
             if (TryGetAmf0PrimitiveConverter(type, out var primitiveConverter))
@@ -91,32 +89,33 @@ namespace ArcticFox.PolyType.Amf
                 return primitiveConverter;
             }
             
-            var scopedCache = m_amf0ConverterCaches.GetScopedCache(provider);
+            // require because the packet is not in the shape provider...
+            if (type == typeof(AmfPacket)) return GetBuiltinConverters(provider).m_packetConverter;
+            if (type == typeof(ExpandoObject)) return GetBuiltinConverters(provider).m_anonymousObject;
+
+            var typeShape = provider.GetTypeShapeOrThrow(type);
+            var scopedCache = m_amf0ConverterCaches.GetScopedCache(typeShape);
             if (scopedCache.TryGetValue(type, out var existing))
             {
                 return (AmfConverter)existing!;
             }
             
-            if (type == typeof(object))
-            {
-                return ManualCacheInsert(scopedCache, typeof(object), new Amf0DynamicValueConverter(this, provider));
-            }
-            if (type == typeof(ExpandoObject))
-            {
-                var dynConverter = (AmfConverter<object>)GetAmf0Converter(typeof(object), provider);
-                return ManualCacheInsert(scopedCache, typeof(ExpandoObject), new Amf0AnonymousObjectConverter(dynConverter));
-            }
-            if (type == typeof(AmfPacket))
-            {
-                var dynConverter = (AmfConverter<object>)GetAmf0Converter(typeof(object), provider);
-                var packetConverter = new AmfPacketConverter(
-                    this,
-                    new AmfHeaderConverter<object>(dynConverter),
-                    new AmfMessageConverter<object>(dynConverter));
-                
-                return ManualCacheInsert(scopedCache, typeof(AmfPacket), packetConverter);
-            }
-            return (AmfConverter)m_amf0ConverterCaches.GetOrAdd(provider.GetTypeShapeOrThrow(type))!;
+            return (AmfConverter)m_amf0ConverterCaches.GetOrAdd(typeShape)!;
+        }
+
+        private AmfBuiltinConverters GetBuiltinConverters(ITypeShapeProvider provider)
+        {
+            return m_builtinConverterCaches.GetValue(provider, key => new AmfBuiltinConverters(this, key));
+        }
+
+        private class AmfBuiltinConverters(AmfOptions options, ITypeShapeProvider provider)
+        {
+            private AmfConverter<object> m_objectConverter => (AmfConverter<object>)options.GetAmf0Converter(typeof(object), provider);
+            public Amf0AnonymousObjectConverter m_anonymousObject => field ??= new Amf0AnonymousObjectConverter(m_objectConverter);
+            
+            private AmfHeaderConverter<object> m_headerConverter => field ??= new AmfHeaderConverter<object>(m_objectConverter);
+            private AmfMessageConverter<object> m_messageConverter => field ??= new AmfMessageConverter<object>(m_objectConverter);
+            public AmfPacketConverter m_packetConverter => field ??= new AmfPacketConverter(options, m_headerConverter, m_messageConverter);
         }
     }
 }
