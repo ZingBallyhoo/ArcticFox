@@ -22,7 +22,7 @@ namespace ArcticFox.Net.Sockets
 
         public void StartAcceptWorker()
         {
-            Task.Run(AcceptWorker); // silent ignore
+            _ = Task.Run(AcceptWorker); // silent ignore
         }
         
         public async Task AcceptWorker()

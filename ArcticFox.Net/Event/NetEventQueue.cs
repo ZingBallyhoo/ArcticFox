@@ -1,18 +1,26 @@
 using System;
-using System.Collections.Generic;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using ArcticFox.Net.Batching;
 using ArcticFox.Net.Sockets;
-using ArcticFox.Net.Util;
+using Serilog;
 
 namespace ArcticFox.Net.Event
 {
     public class NetEventQueue : IBroadcaster, IAsyncDisposable
     {
-        protected readonly InterlockedAccess<Queue<NetEvent>> m_eventQueue = new InterlockedAccess<Queue<NetEvent>>(new Queue<NetEvent>());
-        private bool m_acceptingEvents = true;
-        
-        public int m_maxQueueSize = 100;
+        private readonly Channel<NetEvent> m_eventQueue;
+
+        public NetEventQueue(int maxQueueSize = -1)
+        {
+            if (maxQueueSize >= 0)
+            {
+                m_eventQueue = Channel.CreateBounded<NetEvent>(maxQueueSize);
+            } else
+            {
+                m_eventQueue = Channel.CreateUnbounded<NetEvent>();
+            }
+        }
         
         public ValueTask BroadcastEvent(NetEvent ev)
         {
@@ -21,75 +29,55 @@ namespace ArcticFox.Net.Event
 
         private async ValueTask EnqueueEvent(NetEvent @event)
         {
-            using var queueToken = await m_eventQueue.Get();
-            if (!m_acceptingEvents) return;
-
-            var queue = queueToken.m_value;
-
-            if (m_maxQueueSize != -1 && queue.Count > m_maxQueueSize)
-            {
-                // Log.Error("Send queue too big, dropping packet");
-                return;
-            }
-            
             @event.GetRef();
-            queueToken.m_value.Enqueue(@event);
-        }
-
-        public ValueTask<int> FlushEventsToSocket(SocketInterface socket, ISendContext ctx)
-        {
-            if (socket.IsClosed()) return ValueTask.FromResult(0);
-
-            var queueToken = m_eventQueue.TryGet();
-            if (queueToken == null)
+            if (!m_eventQueue.Writer.TryWrite(@event))
             {
-                // someone else is holding the lock already, let them finish
-                return ValueTask.FromResult(0);
+                @event.ReleaseRef();
+                
+                // todo: gross.
+                // the socket needs to be closed or something
+                Log.Error("Send queue too big, dropping packet");
             }
-
-            // only create state machine if we actually need to send
-            return FlushEventsToSocketInternal(socket, ctx, queueToken);
         }
 
-        private static async ValueTask<int> FlushEventsToSocketInternal(SocketInterface socket, ISendContext ctx, InterlockedAccess<Queue<NetEvent>>.Token queueToken)
+        public async ValueTask FlushWorker(SocketInterface socket, ISendContext ctx)
         {
-            using var _ = queueToken;
-
-            var queue = queueToken.m_value;
-            var count = queue.Count;
-            var currentCount = count;
+            var currentCount = 0;
             
-            while (currentCount > 0)
+            while (m_eventQueue.Reader.CanPeek && !socket.IsClosed())
             {
-                if (!queue.TryDequeue(out var ev))
+                if (!m_eventQueue.Reader.TryRead(out var ev))
                 {
-                    // should be impossible....
-                    break;
+                    await ctx.Flush(socket);
+                    currentCount = 0;
+                    
+                    await m_eventQueue.Reader.WaitToReadAsync(socket.m_cancellationTokenSource.Token);
+                    continue;
                 }
+                
                 await ctx.AddMessage(socket, ev.GetMemory(), currentCount);
                 ev.ReleaseRef();
 
-                currentCount--;
+                currentCount++;
             }
+            
             await ctx.Flush(socket);
-                
-            return count;
         }
         
-        private async ValueTask DisposePendingEvents()
+        private void DisposePendingEvents()
         {
-            using var token = await m_eventQueue.Get();
-            m_acceptingEvents = false;
-
-            while (token.m_value.TryDequeue(out var ev))
+            m_eventQueue.Writer.Complete();
+            
+            while (m_eventQueue.Reader.TryRead(out var ev))
             {
                 ev.ReleaseRef();
             }
         }
         
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
-            await DisposePendingEvents();
+            DisposePendingEvents();
+            return ValueTask.CompletedTask;
         }
     }
 }

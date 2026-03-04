@@ -13,7 +13,7 @@ namespace ArcticFox.Net
     {
         public readonly SocketInterface m_socket;
         public readonly TaskQueue m_taskQueue;
-        private readonly NetEventQueue m_netEventQueue;
+        internal readonly NetEventQueue m_netEventQueue;
 
         protected CodecChain? m_netInputCodec;
 
@@ -59,18 +59,13 @@ namespace ArcticFox.Net
             return m_socket.IsClosed();
         }
         
-        public virtual ValueTask<int> HandlePendingSendEvents(ISendContext ctx)
-        {
-            return m_netEventQueue.FlushEventsToSocket(m_socket, ctx);
-        }
-        
         public virtual void HandleException(Exception e)
         {
             // todo: ... exception handling
             Console.Out.WriteLine(e.ToString());
         }
         
-        public ValueTask BroadcastEvent(NetEvent ev)
+        public virtual ValueTask BroadcastEvent(NetEvent ev)
         {
             if (m_hasPreNetTransform)
             {

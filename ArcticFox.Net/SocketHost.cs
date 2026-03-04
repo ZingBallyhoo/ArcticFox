@@ -1,19 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using ArcticFox.Net.Batching;
 using ArcticFox.Net.Sockets;
 using ArcticFox.Net.Util;
-using Serilog;
 
 namespace ArcticFox.Net
 {
     public abstract class SocketHost : IAsyncDisposable
     {
         private readonly CancellationTokenSource m_cancellationTokenSource = new CancellationTokenSource();
-        private readonly TaskCompletionSource m_taskCompletionSource = new TaskCompletionSource();
 
         public bool IsRunning() => !m_cancellationTokenSource.IsCancellationRequested;
         public CancellationToken GetCancellationToken() => m_cancellationTokenSource.Token;
@@ -27,18 +24,32 @@ namespace ArcticFox.Net
         
         public virtual Task StartAsync(CancellationToken cancellationToken=default)
         {
-            Task.Factory.StartNew(async () =>
-            {
-                await UpdateThread(GetCancellationToken());
-            }, TaskCreationOptions.LongRunning);
             return Task.CompletedTask;
         }
         
-        public virtual Task StopAsync(CancellationToken cancellationToken=default)
+        public virtual async Task StopAsync(CancellationToken cancellationToken=default)
         {
-            m_cancellationTokenSource.Cancel();
-            // Defer completion promise, until our application has reported it is done.
-            return m_taskCompletionSource.Task;
+            await m_cancellationTokenSource.CancelAsync();
+
+            var shutdownStart = DateTime.UtcNow;
+            while (true)
+            {
+                using var sockets = await m_sockets.Get();
+                if (sockets.m_value.Count == 0) break;
+                
+                foreach (var socket in sockets.m_value)
+                {
+                    socket.Close();
+                }
+
+                if (DateTime.UtcNow - shutdownStart > TimeSpan.FromSeconds(10) || cancellationToken.IsCancellationRequested)
+                {
+                    throw new Exception($"SocketHost ({GetType()}) shutdown timeout. {sockets.m_value.Count} sockets remain");
+                }
+                
+                // ReSharper disable once MethodSupportsCancellation
+                await Task.Delay(5);
+            }
         }
 
         protected virtual ISendContext CreateSendContext(Memory<byte>? existingMemory=null)
@@ -50,67 +61,6 @@ namespace ArcticFox.Net
             {
                 return new NormalSendContext();
             }
-        }
-        
-        public async Task UpdateThread(CancellationToken cancellationToken)
-        {
-            var ctx = CreateSendContext();
-            
-            var sw = new Stopwatch();
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var elapsed = 0;
-                try
-                {
-                    sw.Start();
-                    var count = 0;
-
-                    using (var sockets = await m_sockets.Get())
-                    {
-                        foreach (var socket in sockets.m_value)
-                        {
-                            if (socket.IsClosed()) continue;
-                            count += await socket.HandlePendingSendEvents(ctx);
-                        }
-                    }
-                    
-                    sw.Stop();
-                    if (count > 0) Log.Error("Send Count: {Count} {Time}", count, sw.Elapsed.TotalMilliseconds);
-                    elapsed = sw.Elapsed.Milliseconds;
-                } catch (Exception e)
-                {
-                    Log.Fatal(e, "Error on SocketHost update");
-                } finally
-                {
-                    sw.Reset();
-                }
-                await Task.Delay(16-Math.Min(16, elapsed)); // todo: loop accumulation
-            }
-            
-            using (var sockets = await m_sockets.Get())
-            {
-                foreach (var socket in sockets.m_value)
-                {
-                    socket.Close();
-                }
-            }
-
-            var shutdownStart = DateTime.UtcNow;
-            while (true)
-            {
-                using var sockets = await m_sockets.Get();
-                if (sockets.m_value.Count == 0) break;
-
-                if (DateTime.UtcNow - shutdownStart > TimeSpan.FromSeconds(10))
-                {
-                    m_taskCompletionSource.SetException(new Exception($"SocketHost ({GetType()}) shutdown timeout. {sockets.m_value.Count} sockets remain"));
-                    return;
-                }
-                
-                await Task.Delay(2);
-            }
-            m_taskCompletionSource.SetResult();
         }
 
         public abstract HighLevelSocket CreateHighLevelSocket(SocketInterface socket);
@@ -134,7 +84,8 @@ namespace ArcticFox.Net
                 sockets.m_value.Add(socket);
             }
             // run in background
-            Task.Run(() => SocketListenTask(socket.m_socket, socket));
+            _ = Task.Run(() => SocketListenTask(socket.m_socket, socket));
+            _ = Task.Run(() => SocketSendTask(socket.m_socket, socket));
         }
 
         private async Task SocketListenTask(SocketInterface socket, HighLevelSocket hl)
@@ -143,7 +94,6 @@ namespace ArcticFox.Net
             {
                 var receiveBuffer = new byte[m_recvBufferSize];
                 var receiveMemory = new Memory<byte>(receiveBuffer);
-                var ctx = CreateSendContext(receiveMemory);
                 
                 while (!socket.IsClosed())
                 {
@@ -151,7 +101,6 @@ namespace ArcticFox.Net
                     if (count == 0) break;
                     hl.NetworkInput(new ReadOnlySpan<byte>(receiveBuffer, 0, count));
                     await hl.m_taskQueue.ConsumeAll();
-                    await hl.HandlePendingSendEvents(ctx);
                 }
             } catch (Exception e)
             {
@@ -164,6 +113,21 @@ namespace ArcticFox.Net
 
                 using var sockets = await m_sockets.Get();
                 sockets.m_value.Remove(hl);
+            }
+        }
+
+        private async Task SocketSendTask(SocketInterface socket, HighLevelSocket hl)
+        {
+            try
+            {
+                var ctx = CreateSendContext();
+                await hl.m_netEventQueue.FlushWorker(socket, ctx);
+            } catch (Exception e)
+            {
+                hl.HandleException(e);
+            } finally
+            {
+                hl.Close();
             }
         }
 
