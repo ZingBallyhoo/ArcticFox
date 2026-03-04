@@ -29,7 +29,13 @@ namespace ArcticFox.Net.Sockets
         {
             if (m_closed) return;
             m_closed = true;
-            m_cancellationTokenSource.Cancel();
+            try
+            {
+                m_cancellationTokenSource.Cancel();
+            } catch (ObjectDisposedException)
+            {
+                // we raced with Dispose
+            }
         }
         
         protected abstract ValueTask CloseSocket();
