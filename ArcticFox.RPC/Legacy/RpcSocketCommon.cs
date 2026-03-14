@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Sockets;
 
-namespace ArcticFox.RPC
+namespace ArcticFox.RPC.Legacy
 {
     public abstract class RpcSocketCommon<T> : HighLevelSocket, IRpcSocket where T : notnull
     {

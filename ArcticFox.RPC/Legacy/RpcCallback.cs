@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace ArcticFox.RPC
+namespace ArcticFox.RPC.Legacy
 {
     public class RpcCallback
     {
