@@ -3,17 +3,13 @@ using System.Net;
 using System.Threading.Tasks;
 using ArcticFox.Net;
 using ArcticFox.Net.Sockets;
+using ArcticFox.Tests.RPC.New;
 using Xunit;
 
 namespace ArcticFox.Tests.RPC
 {
     public class RpcClientSocketHost : SocketHost
     {
-        public RpcClientSocketHost()
-        {
-            m_batchMessages = false;
-        }
-        
         public override HighLevelSocket CreateHighLevelSocket(SocketInterface socket)
         {
             return new MyRpcClientSocket(socket);
@@ -22,34 +18,54 @@ namespace ArcticFox.Tests.RPC
     
     public class RpcServerSocketHost : SocketHost
     {
-        public RpcServerSocketHost()
-        {
-            m_batchMessages = false;
-        }
-        
         public override HighLevelSocket CreateHighLevelSocket(SocketInterface socket)
         {
             return new MyRpcServerSocket(socket);
         }
     }
     
+    public class RpcServerSocketHost2 : SocketHost
+    {
+        public override HighLevelSocket CreateHighLevelSocket(SocketInterface socket)
+        {
+            return new MyRpcServerSocket2(socket);
+        }
+    }
+    
     public class RpcTests
     {
         [Fact]
-        public async Task Test1()
+        public async Task TestOldClientOldServer()
         {
             var endPoint = IPEndPoint.Parse("127.0.0.1:9005");
-            
-            await using var clientHost = new RpcClientSocketHost();
-            await clientHost.StartAsync();
-            
+
             await using var host = new RpcServerSocketHost();
             await host.StartAsync();
             var server = new TcpServer(host, endPoint);
             server.StartAcceptWorker();
 
+            await TestOldClient(endPoint);
+        }
+        
+        [Fact]
+        public async Task TestOldClientNewServer()
+        {
+            var endPoint = IPEndPoint.Parse("127.0.0.1:9006");
+
+            await using var host = new RpcServerSocketHost2();
+            await host.StartAsync();
+            var server = new TcpServer(host, endPoint);
+            server.StartAcceptWorker();
+
+            await TestOldClient(endPoint);
+        }
+
+        private async Task TestOldClient(IPEndPoint endPoint)
+        {
             var remoteService = MyService_RemoteProxy.Instance;
             
+            await using var clientHost = new RpcClientSocketHost();
+            await clientHost.StartAsync();
             using var socket = await clientHost.CreateClientTcpSocket<MyRpcClientSocket>(endPoint);
             
             // normal request

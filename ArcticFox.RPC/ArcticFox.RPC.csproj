@@ -2,8 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <LangVersion>14</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ArcticFox.Net\ArcticFox.Net.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="PolyType" Version="1.1.1" />
   </ItemGroup>
 </Project>
