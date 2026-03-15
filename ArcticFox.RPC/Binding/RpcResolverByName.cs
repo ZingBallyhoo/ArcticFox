@@ -18,7 +18,8 @@ namespace ArcticFox.RPC.Binding
         
         private class Service
         {
-            public readonly Dictionary<string, RpcInvokableOnService<TCallContext>> m_methods = [];
+            public required Func<TCallContext, object?>? m_resolveImplementation;
+            public readonly Dictionary<string, TMethod> m_methods = [];
         }
 
         public RpcResolverByName(TypeShapeVisitor visitor)
@@ -28,18 +29,17 @@ namespace ArcticFox.RPC.Binding
         
         public void BindService(string serviceName, ITypeShape shape, Func<TCallContext, object>? resolveImplementation)
         {
-            var service = new Service();
+            var service = new Service
+            {
+                m_resolveImplementation = resolveImplementation
+            };
             
             var methods = (TMethod[])shape.Accept(m_visitor)!;
             foreach (var method in methods)
             {
                 method.ServiceName = serviceName;
                 
-                service.m_methods.Add(method.MethodName, new RpcInvokableOnService<TCallContext>
-                {
-                    m_resolveImplementation = resolveImplementation,
-                    m_invokable = method
-                });
+                service.m_methods.Add(method.MethodName, method);
             }
 
             m_services.Add(serviceName, service);
@@ -57,8 +57,8 @@ namespace ArcticFox.RPC.Binding
                 throw new InvalidDataException($"no method with name: \"{callContext.MethodName}\"");
             }
 
-            var implementation = method.m_resolveImplementation?.Invoke(callContext);
-            var result = await method.m_invokable.Invoke(implementation, callContext);
+            var implementation = serviceDef.m_resolveImplementation?.Invoke(callContext);
+            var result = await method.Invoke(implementation, callContext);
             return result;
         }
     }

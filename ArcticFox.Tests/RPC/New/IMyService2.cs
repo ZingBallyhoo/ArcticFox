@@ -42,7 +42,6 @@ namespace ArcticFox.Tests.RPC.New
     
     [GenerateShapeFor<MyService2_Server>]
     [GenerateShapeFor<IMyService2<MyRpcServerSocket2>>]
-    [TypeShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
     public partial class MyService2_Server : MyService2_ImplBase<MyRpcServerSocket2>
     {
         public override ValueTask<Response1> OneImpl(MyRpcServerSocket2 socket, Request1 request, CancellationToken cancellationToken)

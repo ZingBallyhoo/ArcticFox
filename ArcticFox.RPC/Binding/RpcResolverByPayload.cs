@@ -16,7 +16,13 @@ namespace ArcticFox.RPC.Binding
         where TCallContext : IRpcCallContextWithCancellation, IRpcCallContextWithPayload
     {
         private readonly TypeShapeVisitor m_visitor;
-        private readonly Dictionary<Type, RpcInvokableOnService<TCallContext>> m_methods = [];
+        private readonly Dictionary<Type, ServiceMethod> m_methods = [];
+        
+        private class ServiceMethod
+        {
+            public required Func<TCallContext, object?>? m_resolveImplementation;
+            public required TMethod m_method;
+        }
         
         public RpcResolverByPayload(TypeShapeVisitor visitor)
         {
@@ -40,10 +46,10 @@ namespace ArcticFox.RPC.Binding
                 }
 
                 var payloadParameter = payloadParameters.Single();
-                m_methods.Add(payloadParameter.PayloadType, new RpcInvokableOnService<TCallContext>
+                m_methods.Add(payloadParameter.PayloadType, new ServiceMethod
                 {
                     m_resolveImplementation = resolveImplementation,
-                    m_invokable = method
+                    m_method = method
                 });
             }
 
@@ -70,7 +76,7 @@ namespace ArcticFox.RPC.Binding
             }
             
             var implementation = method.m_resolveImplementation?.Invoke(callContext);
-            var result = await method.m_invokable.Invoke(implementation, callContext);
+            var result = await method.m_method.Invoke(implementation, callContext);
             return result;
         }
     }
