@@ -89,5 +89,11 @@ namespace ArcticFox.PolyType.FormEncoded
             
             return new FormDictConverter<TDictionary, TKey, TValue>(keyConverter, valueConverter, getDictionary);
         }
+
+        public override object? VisitSurrogate<T, TSurrogate>(ISurrogateTypeShape<T, TSurrogate> surrogateShape, object? state = null)
+        {
+            var surrogateConverter = ReEnter(surrogateShape.SurrogateType);
+            return new FormSurrogateConverter<T, TSurrogate>(surrogateShape.Marshaler, surrogateConverter);
+        }
     }
 }
