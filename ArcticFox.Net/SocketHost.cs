@@ -17,9 +17,6 @@ namespace ArcticFox.Net
 
         private readonly AsyncLockedAccess<List<HighLevelSocket>> m_sockets = new AsyncLockedAccess<List<HighLevelSocket>>(new List<HighLevelSocket>());
         
-        [Obsolete] public bool m_batchMessages;
-        [Obsolete] public int m_maxBatchSize = 1460 - 14; // - ws overhead
-
         public int m_recvBufferSize = 1024;
         
         public virtual Task StartAsync(CancellationToken cancellationToken=default)
@@ -54,13 +51,7 @@ namespace ArcticFox.Net
 
         protected virtual ISendContext CreateSendContext(Memory<byte>? existingMemory=null)
         {
-            if (m_batchMessages)
-            {
-                return new BatchedSendContext(existingMemory ?? new Memory<byte>(new byte[m_maxBatchSize]));
-            } else
-            {
-                return new NormalSendContext();
-            }
+            return new NormalSendContext();
         }
 
         public abstract HighLevelSocket CreateHighLevelSocket(SocketInterface socket);

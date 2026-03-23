@@ -9,11 +9,6 @@ namespace ArcticFox.Tests.RPC
 {
     public class RpcClientSocketHost : SocketHost
     {
-        public RpcClientSocketHost()
-        {
-            m_batchMessages = false;
-        }
-        
         public override HighLevelSocket CreateHighLevelSocket(SocketInterface socket)
         {
             return new MyRpcClientSocket(socket);
@@ -22,11 +17,6 @@ namespace ArcticFox.Tests.RPC
     
     public class RpcServerSocketHost : SocketHost
     {
-        public RpcServerSocketHost()
-        {
-            m_batchMessages = false;
-        }
-        
         public override HighLevelSocket CreateHighLevelSocket(SocketInterface socket)
         {
             return new MyRpcServerSocket(socket);

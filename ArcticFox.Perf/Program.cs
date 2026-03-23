@@ -32,7 +32,6 @@ namespace ArcticFox.Perf
             var monitor = new RateMonitor();
 
             await using var host = new NullSocketHost();
-            host.m_batchMessages = true;
             await host.StartAsync();
             
             var sockets = new HighLevelSocket[450];
