@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using ArcticFox.Net.Batching;
 using ArcticFox.Net.Sockets;
 
 namespace ArcticFox.Net.Event
@@ -28,30 +27,21 @@ namespace ArcticFox.Net.Event
             }
         }
 
-        public async ValueTask FlushWorker(SocketInterface socket, ISendContext ctx)
+        public async ValueTask FlushWorker(SocketInterface socket)
         {
-            var currentCount = 0;
-            
             while (m_queue.Reader.CanPeek && !socket.IsClosed())
             {
                 if (!m_queue.Reader.TryRead(out var message))
                 {
-                    await ctx.Flush(socket);
-                    currentCount = 0;
-                    
                     await m_queue.Reader.WaitToReadAsync(socket.m_cancellationTokenSource.Token);
                     continue;
                 }
 
                 if (message is NetEvent netEvent)
                 {
-                    await ctx.AddMessage(socket, netEvent.GetMemory(), currentCount);
+                    await socket.SendBuffer(netEvent.GetMemory());
                 }
-                
-                currentCount++;
             }
-            
-            await ctx.Flush(socket);
         }
         
         private void DisposePendingEvents()

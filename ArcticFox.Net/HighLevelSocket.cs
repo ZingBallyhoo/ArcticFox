@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ArcticFox.Codec;
-using ArcticFox.Net.Batching;
 using ArcticFox.Net.Event;
 using ArcticFox.Net.Sockets;
 using ArcticFox.Net.Util;

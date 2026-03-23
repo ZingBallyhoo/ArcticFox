@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ArcticFox.Net.Batching;
 using ArcticFox.Net.Sockets;
 using ArcticFox.Net.Util;
 
@@ -47,11 +46,6 @@ namespace ArcticFox.Net
                 // ReSharper disable once MethodSupportsCancellation
                 await Task.Delay(5);
             }
-        }
-
-        protected virtual ISendContext CreateSendContext(Memory<byte>? existingMemory=null)
-        {
-            return new NormalSendContext();
         }
 
         public abstract HighLevelSocket CreateHighLevelSocket(SocketInterface socket);
@@ -111,8 +105,7 @@ namespace ArcticFox.Net
         {
             try
             {
-                var ctx = CreateSendContext();
-                await hl.m_netEventQueue.FlushWorker(socket, ctx);
+                await hl.m_netEventQueue.FlushWorker(socket);
             } catch (Exception e)
             {
                 hl.HandleException(e);
