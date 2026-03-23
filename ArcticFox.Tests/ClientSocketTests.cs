@@ -39,20 +39,6 @@ namespace ArcticFox.Tests
     public class ClientSocketTests
     {
         [Fact]
-        public async Task TestEchoWS()
-        {
-            await using var host = new TestSocketHost();
-            await host.StartAsync();
-
-            using var socket = await host.CreateClientWebSocket<TestSocket>(new Uri("wss://echo.websocket.org"));
-
-            await socket.BroadcastZeroTerminatedAscii("Hello Echo Bois\0"); // todo: can't send more than 1 \0? it doesn't work
-            await Task.Delay(500); // this is over the internet lol
-
-            Assert.Equal(new []{"Hello Echo Bois"}, socket.m_received);
-        }
-        
-        [Fact]
         public async Task TestEchoTcpInProcess()
         {
             await using var clientHost = new TestSocketHost();
