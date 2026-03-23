@@ -13,9 +13,9 @@ namespace ArcticFox.Net.Util
             m_channel = Channel.CreateUnbounded<Func<ValueTask>>();
         }
 
-        public ValueTask Enqueue(Func<ValueTask> taskGenerator)
+        public void Enqueue(Func<ValueTask> taskGenerator)
         {
-            return m_channel.Writer.WriteAsync(taskGenerator);
+            m_channel.Writer.TryWrite(taskGenerator);
         }
         
         public async ValueTask ConsumeAll()

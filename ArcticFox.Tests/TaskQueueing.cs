@@ -16,7 +16,7 @@ namespace ArcticFox.Tests
             for (var i = 0; i < 10; i++)
             {
                 var iCopy = i; // todo: hmm
-                await queue.Enqueue(async () =>
+                queue.Enqueue(async () =>
                 {
                     await Task.Delay(10);
                     Assert.Equal(number, iCopy);
