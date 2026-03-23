@@ -3,23 +3,16 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using ArcticFox.Net.Batching;
 using ArcticFox.Net.Sockets;
-using Serilog;
 
 namespace ArcticFox.Net.Event
 {
     public class NetEventQueue : IBroadcaster, IAsyncDisposable
     {
-        private readonly Channel<NetEvent> m_eventQueue;
+        private readonly Channel<object> m_queue;
 
-        public NetEventQueue(int maxQueueSize = -1)
+        public NetEventQueue()
         {
-            if (maxQueueSize >= 0)
-            {
-                m_eventQueue = Channel.CreateBounded<NetEvent>(maxQueueSize);
-            } else
-            {
-                m_eventQueue = Channel.CreateUnbounded<NetEvent>();
-            }
+            m_queue = Channel.CreateUnbounded<object>();
         }
         
         public ValueTask BroadcastEvent(NetEvent ev)
@@ -29,14 +22,9 @@ namespace ArcticFox.Net.Event
 
         private async ValueTask EnqueueEvent(NetEvent @event)
         {
-            @event.GetRef();
-            if (!m_eventQueue.Writer.TryWrite(@event))
+            if (m_queue.Writer.TryWrite(@event))
             {
-                @event.ReleaseRef();
-                
-                // todo: gross.
-                // the socket needs to be closed or something
-                Log.Error("Send queue too big, dropping packet");
+                @event.GetRef();
             }
         }
 
@@ -44,20 +32,22 @@ namespace ArcticFox.Net.Event
         {
             var currentCount = 0;
             
-            while (m_eventQueue.Reader.CanPeek && !socket.IsClosed())
+            while (m_queue.Reader.CanPeek && !socket.IsClosed())
             {
-                if (!m_eventQueue.Reader.TryRead(out var ev))
+                if (!m_queue.Reader.TryRead(out var message))
                 {
                     await ctx.Flush(socket);
                     currentCount = 0;
                     
-                    await m_eventQueue.Reader.WaitToReadAsync(socket.m_cancellationTokenSource.Token);
+                    await m_queue.Reader.WaitToReadAsync(socket.m_cancellationTokenSource.Token);
                     continue;
                 }
-                
-                await ctx.AddMessage(socket, ev.GetMemory(), currentCount);
-                ev.ReleaseRef();
 
+                if (message is NetEvent netEvent)
+                {
+                    await ctx.AddMessage(socket, netEvent.GetMemory(), currentCount);
+                }
+                
                 currentCount++;
             }
             
@@ -66,11 +56,14 @@ namespace ArcticFox.Net.Event
         
         private void DisposePendingEvents()
         {
-            m_eventQueue.Writer.Complete();
+            m_queue.Writer.Complete();
             
-            while (m_eventQueue.Reader.TryRead(out var ev))
+            while (m_queue.Reader.TryRead(out var message))
             {
-                ev.ReleaseRef();
+                if (message is RefCounted refCounted)
+                {
+                    refCounted.ReleaseRef();
+                }
             }
         }
         
