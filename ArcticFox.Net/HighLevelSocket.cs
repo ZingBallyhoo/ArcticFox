@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using ArcticFox.Codec;
 using ArcticFox.Net.Event;
@@ -16,28 +15,16 @@ namespace ArcticFox.Net
 
         protected CodecChain? m_netInputCodec;
 
-        private bool m_hasPreNetTransform;
-        protected AsyncLockedAccess<CodecChain<byte, byte>?> m_preNetTransform;
-
         public HighLevelSocket(SocketInterface socket)
         {
             m_socket = socket;
             m_taskQueue = new TaskQueue();
             m_netEventQueue = new NetEventQueue();
-            m_preNetTransform = new AsyncLockedAccess<CodecChain<byte, byte>?>(null);
         }
 
         protected void SetPreNetTransform(CodecChain<byte, byte>? chain)
         {
-            // todo: i guess its fine to block here
-            using var token = m_preNetTransform.GetSync();
-            m_hasPreNetTransform = chain != null;
-            var current = token.m_value;
-            token.m_value = chain;
-            if (current != null)
-            {
-                current.Dispose();
-            }
+            m_netEventQueue.SetPreNetTransform(chain);
         }
         
         public virtual void NetworkInput(ReadOnlySpan<byte> data)
@@ -66,31 +53,7 @@ namespace ArcticFox.Net
         
         public virtual ValueTask BroadcastEvent(NetEvent ev)
         {
-            if (m_hasPreNetTransform)
-            {
-                return BroadcastWithTransform(ev);
-            } else
-            {
-                return m_netEventQueue.BroadcastEvent(ev);
-            }
-        }
-
-        private async ValueTask BroadcastWithTransform(NetEvent ev)
-        {
-            using var transformToken = await m_preNetTransform.Get();
-            var transform = transformToken.m_value;
-            if (transform == null)
-            {
-                // shouldn't have gotten here, but lets handle it anyway
-                await m_netEventQueue.BroadcastEvent(ev);
-                return;
-            }
-            
-            object? newEv = null;
-            transform.Input(ev.GetMemory().Span, ref newEv);
-            Debug.Assert(newEv != null);
-            var newNetEv = (NetEvent) newEv;
-            await m_netEventQueue.BroadcastEventOwningCreation(newNetEv);
+            return m_netEventQueue.BroadcastEvent(ev);
         }
 
         public void Dispose()
