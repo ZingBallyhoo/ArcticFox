@@ -23,7 +23,7 @@ namespace ArcticFox.Tests.Impls
 
         public void DataInput(string str)
         {
-            m_chain.Input2(str.AsSpan());
+            m_chain.Input(str.AsSpan());
         }
 
         public void Dispose()

@@ -22,7 +22,7 @@ namespace ArcticFox.Tests.Impls
 
         public void DataInput(string str)
         {
-            m_chain.Input2(Encoding.ASCII.GetBytes(str));
+            m_chain.Input(Encoding.ASCII.GetBytes(str));
         }
 
         public void Dispose()

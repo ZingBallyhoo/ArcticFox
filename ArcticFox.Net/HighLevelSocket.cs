@@ -32,7 +32,7 @@ namespace ArcticFox.Net
             var inputCodec = m_netInputCodec;
             if (inputCodec == null) throw new NullReferenceException("No input codec");
             
-            inputCodec.Input2(data, m_socket);
+            inputCodec.Input(data, m_socket);
         }
 
         public void Close()
