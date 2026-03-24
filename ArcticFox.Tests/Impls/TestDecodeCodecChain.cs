@@ -6,7 +6,7 @@ namespace ArcticFox.Tests.Impls
 {
     public class TestDecodeCodecChain : IDisposable
     {
-        private CodecChain m_chain;
+        private CodecChain<byte> m_chain;
         private TestDecodeOutputCodec m_output;
 
         public TestDecodeCodecChain(Encoding? encoding = null)
@@ -15,7 +15,7 @@ namespace ArcticFox.Tests.Impls
             
             m_output = new TestDecodeOutputCodec();
             
-            m_chain = new CodecChain();
+            m_chain = new CodecChain<byte>();
             m_chain.AddCodec(new ZeroDelimitedDecodeCodec());
             m_chain.AddCodec(new TextDecodeCodec(encoding));
             m_chain.AddCodec(m_output);
@@ -23,7 +23,7 @@ namespace ArcticFox.Tests.Impls
 
         public void DataInput(string str)
         {
-            m_chain.Head<byte>().Input2(Encoding.ASCII.GetBytes(str));
+            m_chain.Input2(Encoding.ASCII.GetBytes(str));
         }
 
         public void Dispose()

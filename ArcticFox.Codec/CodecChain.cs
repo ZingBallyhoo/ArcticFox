@@ -1,30 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace ArcticFox.Codec
 {
-    public class CodecChain : IDisposable
+    public class CodecChain<T> : ISpanConsumer<T>, IDisposable
     {
-        private readonly List<IDisposable> m_disposableCodecs;
+        private readonly List<IDisposable> m_disposableCodecs = [];
 
-        private object? m_head;
+        private ISpanConsumer<T>? m_head;
         private object? m_tail;
         
-        public CodecChain()
+        public CodecChain<T> AddCodec<TTo>(ISpanConsumer<TTo> next)
         {
-            m_disposableCodecs = new List<IDisposable>();
-        }
-
-        public ISpanConsumer<T> Head<T>()
-        {
-            Debug.Assert(m_head != null);
-            return (ISpanConsumer<T>)m_head;
-        }
-
-        public CodecChain AddCodec<TTo>(ISpanConsumer<TTo> next)
-        {
-            if (m_head == null) m_head = next;
+            m_head ??= (ISpanConsumer<T>)next;
             if (m_tail != null)
             {
                 var tailChain = (SpanCodecBase<TTo>)m_tail;
@@ -40,32 +28,17 @@ namespace ArcticFox.Codec
             return this;
         }
 
+        public void Input(ReadOnlySpan<T> input, ref object? state)
+        {
+            m_head!.Input(input, ref state);
+        }
+
         public void Dispose()
         {
             foreach (var codec in m_disposableCodecs)
             {
                 codec.Dispose();
             }
-        }
-    }
-
-    public class CodecChain<TFrom, TTo> : ISpanConsumer<TFrom>, IDisposable
-    {
-        private readonly CodecChain m_chain;
-        
-        public CodecChain(CodecChain chain)
-        {
-            m_chain = chain;
-        }
-
-        public void Input(ReadOnlySpan<TFrom> input, ref object? state)
-        {
-            m_chain.Head<TFrom>().Input(input, ref state);
-        }
-
-        public void Dispose()
-        {
-            m_chain.Dispose();
         }
     }
 }

@@ -13,7 +13,7 @@ namespace ArcticFox.Net
         public readonly TaskQueue m_taskQueue;
         internal readonly NetEventQueue m_netEventQueue;
 
-        protected CodecChain? m_netInputCodec;
+        protected CodecChain<byte>? m_netInputCodec;
 
         public HighLevelSocket(SocketInterface socket)
         {
@@ -22,7 +22,7 @@ namespace ArcticFox.Net
             m_netEventQueue = new NetEventQueue();
         }
 
-        protected void SetPreNetTransform(CodecChain<byte, byte>? chain)
+        protected void SetPreNetTransform(CodecChain<byte>? chain)
         {
             m_netEventQueue.SetPreNetTransform(chain);
         }
@@ -32,7 +32,7 @@ namespace ArcticFox.Net
             var inputCodec = m_netInputCodec;
             if (inputCodec == null) throw new NullReferenceException("No input codec");
             
-            inputCodec.Head<byte>().Input2(data, m_socket);
+            inputCodec.Input2(data, m_socket);
         }
 
         public void Close()

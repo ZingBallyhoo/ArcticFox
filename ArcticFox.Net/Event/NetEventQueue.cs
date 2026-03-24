@@ -10,10 +10,10 @@ namespace ArcticFox.Net.Event
     public class NetEventQueue : IBroadcaster, IAsyncDisposable
     {
         private readonly Channel<object> m_queue;
-        private CodecChain<byte, byte>? m_preNetTransform;
+        private CodecChain<byte>? m_preNetTransform;
 
         // todo: for now we need to use this, as null chain can be specified
-        private record SetPreNetTransformMessage(CodecChain<byte, byte>? chain) : IDisposable
+        private record SetPreNetTransformMessage(CodecChain<byte>? chain) : IDisposable
         {
             public void Dispose()
             {
@@ -39,7 +39,7 @@ namespace ArcticFox.Net.Event
             }
         }
 
-        public void SetPreNetTransform(CodecChain<byte, byte>? codecChain)
+        public void SetPreNetTransform(CodecChain<byte>? codecChain)
         {
             if (!m_queue.Writer.TryWrite(new SetPreNetTransformMessage(codecChain)))
             {

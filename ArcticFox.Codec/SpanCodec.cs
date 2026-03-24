@@ -4,7 +4,7 @@ namespace ArcticFox.Codec
 {
     public abstract class SpanCodecBase<TTo>
     {
-        public ISpanConsumer<TTo> m_next;
+        public ISpanConsumer<TTo> m_next = null!;
     }
     
     public abstract class SpanCodec<TFrom, TTo> : SpanCodecBase<TTo>, ISpanConsumer<TFrom>
