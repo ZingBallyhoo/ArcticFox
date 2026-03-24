@@ -6,6 +6,13 @@ namespace ArcticFox.Codec
     {
         void Input(ReadOnlySpan<T> input, ref object? state);
     }
+    
+    public interface ISpanProducer<T>
+    {
+        public ISpanConsumer<T> Next { get; set; }
+    }
+
+    public interface ISpanCodec<TFrom, TTo> : ISpanConsumer<TFrom>, ISpanProducer<TTo>;
 
     public static class ISpanConsumerExtensions
     {

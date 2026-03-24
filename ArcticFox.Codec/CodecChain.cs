@@ -3,42 +3,38 @@ using System.Collections.Generic;
 
 namespace ArcticFox.Codec
 {
-    public class CodecChain<T> : ISpanConsumer<T>, IDisposable
+    public class CodecChain<THead> : ISpanConsumer<THead>, IDisposable
     {
+        private readonly ISpanConsumer<THead> m_head;
         private readonly List<IDisposable> m_disposableCodecs = [];
 
-        private ISpanConsumer<T>? m_head;
-        private object? m_tail;
-        
-        public CodecChain<T> AddCodec<TTo>(ISpanConsumer<TTo> next)
+        public CodecChain(ISpanConsumer<THead> head)
         {
-            m_head ??= (ISpanConsumer<T>)next;
-            if (m_tail != null)
-            {
-                var tailChain = (SpanCodecBase<TTo>)m_tail;
-                tailChain.m_next = next;
-            }
-            m_tail = next;
-            
-            if (next is IDisposable disposable)
+            m_head = head;
+            RegisterDisposable(head);
+        }
+        
+        public void Input(ReadOnlySpan<THead> input, ref object? state)
+        {
+            m_head.Input(input, ref state);
+        }
+
+        internal void RegisterDisposable(object codec)
+        {
+            if (codec is IDisposable disposable)
             {
                 m_disposableCodecs.Add(disposable);
             }
-            
-            return this;
-        }
-
-        public void Input(ReadOnlySpan<T> input, ref object? state)
-        {
-            m_head!.Input(input, ref state);
         }
 
         public void Dispose()
         {
-            foreach (var codec in m_disposableCodecs)
+            foreach (var disposable in m_disposableCodecs)
             {
-                codec.Dispose();
+                disposable.Dispose();
             }
+            
+            GC.SuppressFinalize(this);
         }
     }
 }

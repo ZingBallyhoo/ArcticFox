@@ -15,10 +15,10 @@ namespace ArcticFox.Tests.Impls
             
             m_output = new TestEncodeOutputCodec();
             
-            m_chain = new CodecChain<char>();
-            m_chain.AddCodec(new ZeroDelimitedEncodeCodec());
-            m_chain.AddCodec(new TextEncodeCodec(encoding));
-            m_chain.AddCodec(m_output);
+            m_chain = new ZeroDelimitedEncodeCodec()
+                .ChainTo(new TextEncodeCodec(encoding))
+                .ChainTo(new TextDecodeCodec(encoding).ChainTo(new TextEncodeCodec(encoding))) // validate sub-chain
+                .ChainTo(m_output);
         }
 
         public void DataInput(string str)

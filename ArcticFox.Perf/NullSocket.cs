@@ -9,7 +9,7 @@ namespace ArcticFox.Perf
     {
         public NullSocket(SocketInterface socket) : base(socket)
         {
-            m_netInputCodec = new CodecChain<byte>().AddCodec(this);
+            m_netInputCodec = new CodecChain<byte>(this);
         }
 
         public void Input(ReadOnlySpan<byte> input, ref object? state)

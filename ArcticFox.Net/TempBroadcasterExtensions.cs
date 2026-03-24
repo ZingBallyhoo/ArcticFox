@@ -10,24 +10,14 @@ namespace ArcticFox.Net
     public static class TempBroadcasterExtensions
     {
         private static readonly Lazy<CodecChain<char>> s_zeroTerminatedStringCodec =
-            new Lazy<CodecChain<char>>(() =>
-            {
-                var chain = new CodecChain<char>();
-                chain.AddCodec(new ZeroDelimitedEncodeCodec());
-                chain.AddCodec(new TextEncodeCodec(Encoding.ASCII));
-                chain.AddCodec(NetEventFactory.s_instance);
-                return chain;
-            });
+            new Lazy<CodecChain<char>>(() => new ZeroDelimitedEncodeCodec()
+                .ChainTo(new TextEncodeCodec(Encoding.ASCII))
+                .ChainTo(NetEventFactory.s_instance));
         
         private static readonly Lazy<CodecChain<char>> s_zeroTerminatedStringToBytesCodec =
-            new Lazy<CodecChain<char>>(() =>
-            {
-                var chain = new CodecChain<char>();
-                chain.AddCodec(new ZeroDelimitedEncodeCodec());
-                chain.AddCodec(new TextEncodeCodec(Encoding.ASCII));
-                chain.AddCodec(ArrayFactory<byte>.s_instance);
-                return chain;
-            });
+            new Lazy<CodecChain<char>>(() => new ZeroDelimitedEncodeCodec()
+                .ChainTo(new TextEncodeCodec(Encoding.ASCII))
+                .ChainTo(ArrayFactory<byte>.s_instance));
         
         public static ValueTask BroadcastZeroTerminatedAscii<T>(this T bc, ReadOnlySpan<char> msg) where T: IBroadcaster
         {

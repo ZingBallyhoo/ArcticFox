@@ -17,7 +17,7 @@ namespace ArcticFox.Tests.RPC
         
         public MyRpcClientSocket(SocketInterface socket) : base(socket)
         {
-            m_netInputCodec = new CodecChain<byte>().AddCodec(this);
+            m_netInputCodec = new CodecChain<byte>(this);
             m_callbackIDFactory = new IDFactory();
         }
 
