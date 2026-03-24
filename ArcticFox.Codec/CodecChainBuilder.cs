@@ -2,7 +2,7 @@ using System;
 
 namespace ArcticFox.Codec
 {
-    public class CodecChainBuilder<THead, TCurrent> : ISpanCodec<THead, TCurrent>
+    public class CodecChainBuilder<THead, TCurrent> : ISpanCodec<THead, TCurrent>, IDisposable
     {
         private readonly CodecChain<THead> m_chain;
         private readonly ISpanProducer<TCurrent> m_current;
@@ -27,6 +27,7 @@ namespace ArcticFox.Codec
 
         private CodecChainBuilder(CodecChain<THead> chain, ISpanProducer<TCurrent> current)
         {
+            // expected that `current` was already registered as disposable
             m_chain = chain;
             m_current = current;
         }
@@ -44,6 +45,12 @@ namespace ArcticFox.Codec
             m_current.Next = next;
 
             return m_chain;
+        }
+
+        public void Dispose()
+        {
+            // implemented just in case the ChainTo extension is called on this type
+            m_chain.Dispose();
         }
     }
     
