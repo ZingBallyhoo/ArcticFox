@@ -5,7 +5,6 @@ namespace ArcticFox.Codec
     public interface ISpanConsumer<T>
     {
         void Input(ReadOnlySpan<T> input, ref object? state);
-        void Abort();
     }
 
     public static class ISpanConsumerExtensions

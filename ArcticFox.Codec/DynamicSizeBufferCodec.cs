@@ -40,7 +40,6 @@ namespace ArcticFox.Codec
 
             if (m_maxMemorySize != -1 && requiredSize > m_maxMemorySize)
             {
-                Abort();
                 throw new InvalidDataException($"message too big. {requiredSize} > {m_maxMemorySize}");
             }
 

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using CommunityToolkit.HighPerformance.Buffers;
 
 namespace ArcticFox.Codec
@@ -13,8 +14,7 @@ namespace ArcticFox.Codec
                 if (countOf0 != 1)
                 {
                     // it should only be the last char
-                    Abort();
-                    return;
+                    throw new InvalidDataException("smuggled null character inside of data (count >1)");
                 }
                 
                 CodecOutput(input, ref state);
@@ -24,8 +24,7 @@ namespace ArcticFox.Codec
             if (countOf0 != 0)
             {
                 // it wasn't the last char, so its hiding in the data
-                Abort();
-                return;
+                throw new InvalidDataException("smuggled null character inside of data (count != 0)");
             }
             
             using var owner = SpanOwner<char>.Allocate(input.Length + 1);

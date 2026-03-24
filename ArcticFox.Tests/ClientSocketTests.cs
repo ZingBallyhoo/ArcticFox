@@ -21,11 +21,6 @@ namespace ArcticFox.Tests
             // its ok to pass the span, method runs synchronously
             TempBroadcasterExtensions.BroadcastBytes(this, input).GetAwaiter().GetResult();
         }
-
-        public void Abort()
-        {
-            Close();
-        }
     }
 
     public class EchoSocketHost : SocketHost

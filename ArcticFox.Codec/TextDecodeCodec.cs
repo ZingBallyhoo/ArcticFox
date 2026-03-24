@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using CommunityToolkit.HighPerformance.Buffers;
 
@@ -19,8 +20,7 @@ namespace ArcticFox.Codec
         {
             if (buffer.Length == 0)
             {
-                Abort();
-                return;
+                throw new InvalidDataException("0 length buffer");
             }
 
             var maxChars = m_encoding.GetMaxCharCount(buffer.Length);
@@ -34,8 +34,8 @@ namespace ArcticFox.Codec
                 //Log.Information(
                 //    "[TextReceiver:{Endpoint}]: Decoding was not finished after reading {CharCount} chars from a buffer of {BufferSize} bytes. {ConsumedBytes} bytes consumed",
                 //    GetIdentifier(), charCount, buffer.Length, bytesUsed);
-                Abort();
-                return;
+
+                throw new InvalidDataException("partial character decode");
             }
             
             charSpan = charSpan.Slice(0, charCount);

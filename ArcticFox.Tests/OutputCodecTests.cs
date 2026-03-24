@@ -1,3 +1,4 @@
+using System.IO;
 using ArcticFox.Tests.Impls;
 using Xunit;
 
@@ -27,16 +28,20 @@ namespace ArcticFox.Tests
          public void TestAbortTooManyNull()
          {
              using var receiver = new TestEncodeCodecChain();
-             receiver.DataInput("Hello\0\0");
-             receiver.AssertAborted();
+             Assert.Throws<InvalidDataException>(() =>
+             {
+                 receiver.DataInput("Hello\0\0");
+             });
          }
          
          [Fact]
          public void TestAbortEmbeddedNull()
          {
              using var receiver = new TestEncodeCodecChain();
-             receiver.DataInput("He\0llo");
-             receiver.AssertAborted();
+             Assert.Throws<InvalidDataException>(() =>
+             {
+                 receiver.DataInput("He\0llo");
+             });
          }
     }
 }

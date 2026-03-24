@@ -15,10 +15,5 @@ namespace ArcticFox.Codec
         {
             m_next.Input(output, ref state);
         }
-
-        public virtual void Abort()
-        {
-            m_next.Abort();
-        }
     }
 }

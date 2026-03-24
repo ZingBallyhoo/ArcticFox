@@ -60,10 +60,5 @@ using ArcticFox.Net.Sockets;
             writer.WriteUInt32LittleEndian(requestID);
             return TempBroadcasterExtensions.BroadcastBytes(this, writer.m_output);
         }
-
-        public void Abort()
-        {
-            Close();
-        }
     }
 }

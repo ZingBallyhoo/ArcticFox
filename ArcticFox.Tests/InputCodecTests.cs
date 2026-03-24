@@ -1,3 +1,4 @@
+using System.IO;
 using ArcticFox.Tests.Impls;
 using Xunit;
 
@@ -55,8 +56,10 @@ namespace ArcticFox.Tests
         public void TestAbortedNoText()
         {
             using var receiver = new TestDecodeCodecChain();
-            receiver.DataInput("\0\0");
-            receiver.AssertAborted();
+            Assert.Throws<InvalidDataException>(() =>
+            {
+                receiver.DataInput("\0\0");
+            });
         }
         
         [Fact]

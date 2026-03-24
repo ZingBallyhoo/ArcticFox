@@ -49,7 +49,7 @@ namespace ArcticFox.Codec
         }
     }
 
-    public class CodecChain<TFrom, TTo> : SpanCodec<TFrom, TTo>, IDisposable
+    public class CodecChain<TFrom, TTo> : ISpanConsumer<TFrom>, IDisposable
     {
         private readonly CodecChain m_chain;
         
@@ -58,7 +58,7 @@ namespace ArcticFox.Codec
             m_chain = chain;
         }
 
-        public override void Input(ReadOnlySpan<TFrom> input, ref object? state)
+        public void Input(ReadOnlySpan<TFrom> input, ref object? state)
         {
             m_chain.Head<TFrom>().Input(input, ref state);
         }

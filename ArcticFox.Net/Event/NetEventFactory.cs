@@ -12,9 +12,5 @@ namespace ArcticFox.Net.Event
             var netEvent = NetEvent.Create(input);
             state = netEvent;
         }
-
-        public void Abort()
-        {
-        }
     }
 }

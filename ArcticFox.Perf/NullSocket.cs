@@ -15,9 +15,5 @@ namespace ArcticFox.Perf
         public void Input(ReadOnlySpan<byte> input, ref object? state)
         {
         }
-
-        public void Abort()
-        {
-        }
     }
 }

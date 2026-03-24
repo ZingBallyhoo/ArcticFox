@@ -11,9 +11,5 @@ namespace ArcticFox.Net.Event
         {
             state = input.ToArray();
         }
-        
-        public void Abort()
-        {
-        }
     }
 }

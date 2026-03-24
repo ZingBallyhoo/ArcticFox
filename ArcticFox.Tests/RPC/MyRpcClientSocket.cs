@@ -74,10 +74,5 @@ namespace ArcticFox.Tests.RPC
             writer.WriteUInt32LittleEndian(requestID);
             return this.BroadcastBytes(writer.m_output);
         }
-
-        public void Abort()
-        {
-            Close();
-        }
     }
 }

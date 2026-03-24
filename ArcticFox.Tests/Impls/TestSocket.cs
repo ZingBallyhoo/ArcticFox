@@ -21,10 +21,5 @@ namespace ArcticFox.Tests.Impls
         {
             m_received.Add(input.ToString());
         }
-
-        public void Abort()
-        {
-            Close();
-        }
     }
 }

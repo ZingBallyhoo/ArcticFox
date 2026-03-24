@@ -35,10 +35,5 @@ namespace ArcticFox.Tests.Impls
         {
             m_output.AssertReceived(expected);
         }
-
-        public void AssertAborted()
-        {
-            m_output.AssertAborted();
-        }
     }
 }
