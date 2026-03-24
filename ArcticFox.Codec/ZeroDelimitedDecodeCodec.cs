@@ -6,6 +6,10 @@ namespace ArcticFox.Codec
     {
         public byte m_delimitByte = 0;
 
+        public ZeroDelimitedDecodeCodec(int maxMemorySize) : base(maxMemorySize)
+        {
+        }
+
         public override void Input(ReadOnlySpan<byte> input, ref object? state)
         {
             while (input.Length > 0)

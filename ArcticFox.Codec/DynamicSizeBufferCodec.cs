@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.IO;
 using CommunityToolkit.HighPerformance.Buffers;
 
@@ -7,8 +6,13 @@ namespace ArcticFox.Codec
 {
     public abstract class DynamicSizeBufferCodec<T> : SpanCodec<T, T>, IDisposable
     {
-        private IMemoryOwner<T>? m_memory;
-        protected int m_maxMemorySize = -1;
+        private MemoryOwner<T>? m_memory;
+        protected int MaxMemorySize { get; set; }
+
+        public DynamicSizeBufferCodec(int maxMemorySize)
+        {
+            MaxMemorySize = maxMemorySize;
+        }
 
         protected abstract void Reset();
 
@@ -38,11 +42,12 @@ namespace ArcticFox.Codec
                 requiredSize += writeOffset;
             }
 
-            if (m_maxMemorySize != -1 && requiredSize > m_maxMemorySize)
+            if (MaxMemorySize != -1 && requiredSize > MaxMemorySize)
             {
-                throw new InvalidDataException($"message too big. {requiredSize} > {m_maxMemorySize}");
+                throw new InvalidDataException($"message too big. {requiredSize} > {MaxMemorySize}");
             }
 
+            // todo: grow more appropriately
             var newMemory = MemoryOwner<T>.Allocate(requiredSize);
             var existingMemory = m_memory;
             if (existingMemory != null)

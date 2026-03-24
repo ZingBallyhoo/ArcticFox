@@ -13,7 +13,7 @@ namespace ArcticFox.Tests.Impls
         
         public TestSocket(SocketInterface socket) : base(socket)
         {
-            m_netInputCodec = new ZeroDelimitedDecodeCodec()
+            m_netInputCodec = new ZeroDelimitedDecodeCodec(9999)
                 .ChainTo(new TextDecodeCodec(Encoding.ASCII))
                 .ChainTo(this);
             m_received = new List<string>();

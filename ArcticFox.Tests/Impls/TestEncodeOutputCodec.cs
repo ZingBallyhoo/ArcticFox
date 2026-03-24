@@ -8,7 +8,7 @@ namespace ArcticFox.Tests.Impls
 {
     public class TestEncodeOutputCodec : ISpanConsumer<byte>
     {
-        public List<string> m_outputAsStrings = new List<string>();
+        public readonly List<string> m_outputAsStrings = new List<string>();
 
         public void Reset()
         {

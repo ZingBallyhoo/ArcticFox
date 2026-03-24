@@ -6,8 +6,8 @@ namespace ArcticFox.Tests.Impls
 {
     public class TestEncodeCodecChain : IDisposable
     {
-        private CodecChain<char> m_chain;
-        private TestEncodeOutputCodec m_output;
+        private readonly CodecChain<char> m_chain;
+        private readonly TestEncodeOutputCodec m_output;
 
         public TestEncodeCodecChain(Encoding? encoding = null)
         {

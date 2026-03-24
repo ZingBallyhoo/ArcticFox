@@ -7,7 +7,7 @@ namespace ArcticFox.Tests.Impls
 {
     public class TestDecodeOutputCodec : ISpanConsumer<char>
     {
-        public List<string> m_received = new List<string>();
+        public readonly List<string> m_received = new List<string>();
 
         public void Reset()
         {
