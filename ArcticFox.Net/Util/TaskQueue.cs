@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -18,10 +19,11 @@ namespace ArcticFox.Net.Util
             m_channel.Writer.TryWrite(taskGenerator);
         }
         
-        public async ValueTask ConsumeAll()
+        public async ValueTask ConsumeAll(CancellationToken cancellationToken)
         {
             while (m_channel.Reader.TryRead(out var taskFactory))
             {
+                if (cancellationToken.IsCancellationRequested) break;
                 await taskFactory();
             }
         }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using ArcticFox.Net.Util;
 using Xunit;
@@ -23,7 +24,7 @@ namespace ArcticFox.Tests
                     number++;
                 });
             }
-            await queue.ConsumeAll();
+            await queue.ConsumeAll(CancellationToken.None);
         }
     }
 }

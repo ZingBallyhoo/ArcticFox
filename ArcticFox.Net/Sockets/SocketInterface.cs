@@ -42,6 +42,7 @@ namespace ArcticFox.Net.Sockets
 
         public async ValueTask TryCloseSocket()
         {
+            Close(); // sanity
             try
             {
                 await CloseSocket();

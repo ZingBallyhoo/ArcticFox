@@ -85,7 +85,7 @@ namespace ArcticFox.Net
                     var count = await socket.ReceiveBuffer(receiveMemory);
                     if (count == 0) break;
                     hl.NetworkInput(new ReadOnlySpan<byte>(receiveBuffer, 0, count));
-                    await hl.m_taskQueue.ConsumeAll();
+                    await hl.m_taskQueue.ConsumeAll(socket.m_cancellationTokenSource.Token);
                 }
             } catch (Exception e)
             {
