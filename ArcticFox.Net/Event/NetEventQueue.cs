@@ -39,11 +39,12 @@ namespace ArcticFox.Net.Event
             }
         }
 
-        public void SetPreNetTransform(CodecChain<byte>? codecChain)
+        public void SetPreNetTransform(CodecChainBuilder<byte, byte>? builder)
         {
+            var codecChain = builder?.ChainTo(NetEventFactory.s_instance);
             if (!m_queue.Writer.TryWrite(new SetPreNetTransformMessage(codecChain)))
             {
-                codecChain?.Dispose();
+                builder?.Dispose();
             }
         }
         

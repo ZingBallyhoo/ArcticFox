@@ -22,7 +22,7 @@ namespace ArcticFox.Net
             m_netEventQueue = new NetEventQueue();
         }
 
-        protected void SetPreNetTransform(CodecChain<byte>? chain)
+        protected void SetPreNetTransform(CodecChainBuilder<byte, byte>? chain)
         {
             m_netEventQueue.SetPreNetTransform(chain);
         }
