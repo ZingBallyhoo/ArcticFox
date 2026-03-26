@@ -13,7 +13,7 @@ namespace ArcticFox.Tests.RPC.New
     {
         public MyRpcServerSocket2(SocketInterface socket) : base(socket)
         {
-            m_netInputCodec = new CodecChain().AddCodec(this);
+            m_netInputCodec = new CodecChain<byte>(this);
         }
 
         public void Input(ReadOnlySpan<byte> input, ref object? state)
