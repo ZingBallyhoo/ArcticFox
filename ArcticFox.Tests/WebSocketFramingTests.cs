@@ -101,14 +101,12 @@ namespace ArcticFox.Tests
             var output = new TestEncodeOutputCodec();
             var fakeWs = new TestInputWebSocketInterface();
             
-            using var chain = new WebSocketFramingInputCodec(fakeWs, 2)
+            using var chain = new WebSocketFramingInputCodec(fakeWs, 1000)
                 .ChainTo(output);
-
             
             fakeWs.SetEndOfMessage(true);
             chain.Input(new ReadOnlySpan<byte>(new[] {(byte)'A', (byte)'B', (byte)'C'}), fakeWs);
             output.AssertOutput("ABC");
-            
 
             fakeWs.SetEndOfMessage(false);
             chain.Input(new ReadOnlySpan<byte>(new[] {(byte)'A', (byte)'B', (byte)'C'}), fakeWs);
