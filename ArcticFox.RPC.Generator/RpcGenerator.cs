@@ -93,7 +93,7 @@ namespace ArcticFox.RPC.Generator
             
             var compilation = context.Compilation;
             
-            var methodAttributeSymbol = compilation.GetTypeByMetadataName("ArcticFox.RPC.RpcMethodAttribute");
+            var methodAttributeSymbol = compilation.GetTypeByMetadataName("ArcticFox.RPC.Legacy.RpcMethodAttribute");
 
             Dictionary<INamedTypeSymbol, ClassGenInfo> classes = new Dictionary<INamedTypeSymbol, ClassGenInfo>(SymbolEqualityComparer.Default);
             
@@ -133,7 +133,7 @@ namespace ArcticFox.RPC.Generator
             writer.WriteLine("using System;");
             writer.WriteLine("using System.Threading;");
             writer.WriteLine("using System.Threading.Tasks;");
-            writer.WriteLine("using ArcticFox.RPC;");
+            writer.WriteLine("using ArcticFox.RPC.Legacy;");
             writer.WriteLine();
             
             var scope = new NestedScope(classGenInfo.m_symbol);

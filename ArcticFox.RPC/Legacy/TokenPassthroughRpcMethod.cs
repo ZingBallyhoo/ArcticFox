@@ -1,6 +1,6 @@
 using System;
 
-namespace ArcticFox.RPC
+namespace ArcticFox.RPC.Legacy
 {
     public class TokenPassthroughRpcMethod<TReq> : RpcMethod<TReq> where TReq : class
     {

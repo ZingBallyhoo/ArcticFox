@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ArcticFox.RPC;
+using ArcticFox.RPC.Legacy;
 
 namespace ArcticFox.Tests.RPC
 {

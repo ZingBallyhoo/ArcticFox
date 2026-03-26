@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ArcticFox.RPC
+namespace ArcticFox.RPC.Legacy
 {
     public interface IService<TSocket>
     {

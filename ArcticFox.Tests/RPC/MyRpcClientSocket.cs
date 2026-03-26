@@ -7,7 +7,7 @@ using ArcticFox.Codec.Binary;
 using ArcticFox.Net;
 using ArcticFox.Net.Sockets;
 using ArcticFox.Net.Util;
-using ArcticFox.RPC;
+using ArcticFox.RPC.Legacy;
 
 namespace ArcticFox.Tests.RPC
 {

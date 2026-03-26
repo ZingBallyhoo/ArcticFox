@@ -1,6 +1,6 @@
 using System;
 
-namespace ArcticFox.RPC
+namespace ArcticFox.RPC.Legacy
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
     public class RpcMethodAttribute : Attribute
