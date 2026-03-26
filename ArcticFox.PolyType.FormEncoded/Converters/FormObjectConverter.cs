@@ -8,6 +8,7 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
         public override T? Read(ref FormDecoder decoder, ReadOnlySpan<char> value)
         {
             var inst = defaultConstructor();
+            var propsLookup = m_propertiesToRead.GetAlternateLookup<ReadOnlySpan<char>>();
 
             foreach (var formRange in new FormEnumerator(value, decoder.m_options.m_nextPropertyDelimiter, decoder.m_options.m_keyValueDelimiter))
             {
@@ -15,7 +16,7 @@ namespace ArcticFox.PolyType.FormEncoded.Converters
                 var valueSpan = value[formRange.m_value];
                 
                 var decodedNameSpan = decoder.DecodeKey(nameSpan);
-                if (!m_propertiesToRead.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(decodedNameSpan, out var property))
+                if (!propsLookup.TryGetValue(decodedNameSpan, out var property))
                 {
                     if (!decoder.m_options.m_throwOnUnknownFields) continue;
                     throw new InvalidDataException($"{typeof(T)}: unknown field \"{nameSpan}\"");
