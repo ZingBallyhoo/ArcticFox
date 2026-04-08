@@ -4,10 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using ArcticFox.Net.Sockets;
 using ArcticFox.Net.Util;
+using Microsoft.Extensions.Hosting;
 
 namespace ArcticFox.Net
 {
-    public abstract class SocketHost : IAsyncDisposable
+    public abstract class SocketHost : IHostedLifecycleService, IAsyncDisposable
     {
         private readonly CancellationTokenSource m_cancellationTokenSource = new CancellationTokenSource();
 
@@ -146,6 +147,31 @@ namespace ArcticFox.Net
             {
                 await StopAsync();
             }
+        }
+
+        Task IHostedLifecycleService.StartingAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        Task IHostedLifecycleService.StartedAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        async Task IHostedLifecycleService.StoppingAsync(CancellationToken cancellationToken)
+        {
+            // aspnet will wait for all websocket connections to close before progressing to Stop state
+            // so we need to close connections early
+            
+            // yes, it's kind of jank that we stop twice
+            // but there's no way to stop our method names matching...
+            await StopAsync(cancellationToken);
+        }
+
+        Task IHostedLifecycleService.StoppedAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 }

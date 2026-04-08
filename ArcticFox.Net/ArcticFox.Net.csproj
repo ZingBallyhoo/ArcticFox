@@ -9,4 +9,8 @@
     <ProjectReference Include="..\ArcticFox.Codec\ArcticFox.Codec.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
 </Project>
