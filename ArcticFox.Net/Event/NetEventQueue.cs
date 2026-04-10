@@ -33,9 +33,11 @@ namespace ArcticFox.Net.Event
 
         private async ValueTask EnqueueEvent(NetEvent @event)
         {
-            if (m_queue.Writer.TryWrite(@event))
+            // we need to take the ref first. otherwise we can race with send and "revive" from 0 refs
+            @event.GetRef();
+            if (!m_queue.Writer.TryWrite(@event))
             {
-                @event.GetRef();
+                @event.ReleaseRef();
             }
         }
 
