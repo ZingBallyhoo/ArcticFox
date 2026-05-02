@@ -48,6 +48,11 @@ namespace ArcticFox.Net
         public virtual void HandleException(Exception e)
         {
             // todo: ... exception handling
+            if (m_socket.IsClosed())
+            {
+                if (e is TaskCanceledException) return;
+                if (e is OperationCanceledException) return;
+            }
             Console.Out.WriteLine(e.ToString());
         }
         
