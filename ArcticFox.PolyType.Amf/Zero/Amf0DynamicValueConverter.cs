@@ -28,7 +28,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             converter.WriteAsObject(ref encoder, value);
         }
 
-        public override object? Read(ref AmfDecoder decoder)
+        protected override object? Read(ref AmfDecoder decoder)
         {
             var peekDecoder = decoder; // copy
             var peekedMarker = peekDecoder.ReadMarker();

@@ -19,7 +19,7 @@ namespace ArcticFox.PolyType.Amf.Packet
             }
         }
 
-        public override AmfPacket? Read(ref AmfDecoder decoder)
+        protected override AmfPacket? Read(ref AmfDecoder decoder)
         {
             var packet = new AmfPacket
             {
@@ -42,7 +42,7 @@ namespace ArcticFox.PolyType.Amf.Packet
             packet.m_headers.EnsureCapacity(headerCount);
             for (var i = 0; i < headerCount; i++)
             {
-                packet.m_headers.Add(headerConverter.Read(ref decoder)!);
+                packet.m_headers.Add(headerConverter.ReadChecked(ref decoder)!);
             }
         }
         
@@ -57,7 +57,7 @@ namespace ArcticFox.PolyType.Amf.Packet
             packet.m_messages.EnsureCapacity(messageCount);
             for (var i = 0; i < messageCount; i++)
             {
-                packet.m_messages.Add(messageConverter.Read(ref decoder)!);
+                packet.m_messages.Add(messageConverter.ReadChecked(ref decoder)!);
             }
         }
     }

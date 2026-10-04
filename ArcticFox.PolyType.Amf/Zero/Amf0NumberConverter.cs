@@ -10,7 +10,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             encoder.PutDouble(double.CreateChecked(value));
         }
 
-        public override T Read(ref AmfDecoder decoder)
+        protected override T Read(ref AmfDecoder decoder)
         {
             var marker = decoder.ReadMarker();
             if (marker != Amf0TypeMarker.Number)

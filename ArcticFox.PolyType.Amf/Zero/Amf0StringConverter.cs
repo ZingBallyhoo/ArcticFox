@@ -15,7 +15,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             encoder.PutUtf8(value);
         }
 
-        public override string? Read(ref AmfDecoder decoder)
+        protected override string? Read(ref AmfDecoder decoder)
         {
             var marker = decoder.ReadMarker();
 

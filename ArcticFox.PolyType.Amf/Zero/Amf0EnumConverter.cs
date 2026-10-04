@@ -9,9 +9,9 @@ namespace ArcticFox.PolyType.Amf.Zero
             m_underlying.Write(ref encoder, (TUnderlying)(object)value!);
         }
 
-        public override TEnum? Read(ref AmfDecoder decoder)
+        protected override TEnum? Read(ref AmfDecoder decoder)
         {
-            var underlying = m_underlying.Read(ref decoder)!;
+            var underlying = m_underlying.ReadChecked(ref decoder)!;
             return (TEnum)(object)underlying;
         }
     }

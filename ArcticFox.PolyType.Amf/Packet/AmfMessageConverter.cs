@@ -10,14 +10,14 @@ namespace ArcticFox.PolyType.Amf.Packet
             bodyConverter.WriteAsObject(ref encoder, value.m_data);
         }
 
-        public override AmfMessage? Read(ref AmfDecoder decoder)
+        protected override AmfMessage? Read(ref AmfDecoder decoder)
         {
             // todo: can we limit the decoder to only the range specified by length?
 
             var targetUri = decoder.ReadUtf8();
             var responseUri = decoder.ReadUtf8();
             var messageLength = decoder.ReadUInt32();
-            var body = bodyConverter.Read(ref decoder);
+            var body = bodyConverter.ReadChecked(ref decoder);
             
             return new AmfMessage
             {

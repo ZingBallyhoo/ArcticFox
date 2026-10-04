@@ -19,7 +19,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             encoder.PutMarker(Amf0TypeMarker.ObjectEnd);
         }
 
-        public override T? Read(ref AmfDecoder decoder)
+        protected override T? Read(ref AmfDecoder decoder)
         {
             var marker = decoder.ReadMarker();
             if (marker != Amf0TypeMarker.TypedObject)

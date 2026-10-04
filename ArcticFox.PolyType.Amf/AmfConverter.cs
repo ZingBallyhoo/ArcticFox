@@ -11,7 +11,15 @@ namespace ArcticFox.PolyType.Amf
     public abstract class AmfConverter<T> : AmfConverter
     {
         public abstract void Write(ref AmfEncoder encoder, T? value);
-        public abstract T? Read(ref AmfDecoder decoder);
+        protected abstract T? Read(ref AmfDecoder decoder);
+
+        public T? ReadChecked(ref AmfDecoder decoder)
+        {
+            decoder.IncrementDepth();
+            var value = Read(ref decoder);
+            decoder.DecrementDepth();
+            return value;
+        }
 
         public override void WriteAsObject(ref AmfEncoder encoder, object? value)
         {
@@ -20,7 +28,7 @@ namespace ArcticFox.PolyType.Amf
 
         public override object? ReadAsObject(ref AmfDecoder decoder)
         {
-            return Read(ref decoder);
+            return ReadChecked(ref decoder);
         }
     }
 }

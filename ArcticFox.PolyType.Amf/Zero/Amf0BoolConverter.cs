@@ -8,7 +8,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             encoder.PutUInt8(value ? (byte)1 : (byte)0);
         }
 
-        public override bool Read(ref AmfDecoder decoder)
+        protected override bool Read(ref AmfDecoder decoder)
         {
             var marker = decoder.ReadMarker();
             if (marker != Amf0TypeMarker.Boolean)

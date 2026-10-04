@@ -7,10 +7,13 @@ namespace ArcticFox.PolyType.Amf
     public ref struct AmfDecoder
     {
         public BitReader m_reader;
+        private readonly AmfOptions m_options;
+        private int m_depth;
         
-        public AmfDecoder(BitReader reader)
+        public AmfDecoder(BitReader reader, AmfOptions options)
         {
             m_reader = reader;
+            m_options = options;
         }
         
         public byte ReadByte()
@@ -50,6 +53,20 @@ namespace ArcticFox.PolyType.Amf
         public int GetRemainingBytes()
         {
             return m_reader.m_dataLength - m_reader.m_dataOffset;
+        }
+
+        public void IncrementDepth()
+        {
+            m_depth++;
+            if (m_depth > m_options.m_maxDepth)
+            {
+                throw new InvalidDataException("Recursion limit reached");
+            }
+        }
+
+        public void DecrementDepth()
+        {
+            m_depth--;
         }
     }
 }

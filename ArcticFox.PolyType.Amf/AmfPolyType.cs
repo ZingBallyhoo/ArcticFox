@@ -33,8 +33,8 @@ namespace ArcticFox.PolyType.Amf
         {
             var converter = (AmfConverter<T>)options.GetAmf0Converter(typeof(T), provider);
             
-            var decoder = new AmfDecoder(new BitReader(data));
-            return converter.Read(ref decoder)!;
+            var decoder = new AmfDecoder(new BitReader(data), options);
+            return converter.ReadChecked(ref decoder)!;
         }
         
         public static T Deserialize<T, TProvider>(scoped ReadOnlySpan<byte> data, AmfOptions options) where TProvider : IShapeable<T>

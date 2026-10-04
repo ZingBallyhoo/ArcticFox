@@ -30,7 +30,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             }
         }
 
-        public override TEnumerable? Read(ref AmfDecoder decoder)
+        protected override TEnumerable? Read(ref AmfDecoder decoder)
         {
             var marker = decoder.ReadMarker();
 
@@ -63,7 +63,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             var array = new TElement[count];
             for (var i = 0; i < count; i++)
             {
-                array[i] = elementConverter.Read(ref decoder)!;
+                array[i] = elementConverter.ReadChecked(ref decoder)!;
             }
             
             return typeShape.GetParameterizedConstructor()(array);

@@ -39,7 +39,7 @@ namespace ArcticFox.PolyType.Amf.Zero
 
         public override void Read(ref AmfDecoder decoder, ref TDeclaringType declaringType)
         {
-            var result = _propertyConverter.Read(ref decoder);
+            var result = _propertyConverter.ReadChecked(ref decoder);
             _setter!(ref declaringType, result!);
         }
 

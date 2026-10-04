@@ -9,7 +9,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             throw new NotImplementedException();
         }
 
-        public override ExpandoObject? Read(ref AmfDecoder decoder)
+        protected override ExpandoObject? Read(ref AmfDecoder decoder)
         {
             var marker = decoder.ReadMarker();
             if (marker != Amf0TypeMarker.Object)
