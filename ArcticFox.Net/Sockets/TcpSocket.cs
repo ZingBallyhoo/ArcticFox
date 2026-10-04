@@ -15,7 +15,7 @@ namespace ArcticFox.Net.Sockets
         
         public override async ValueTask SendBuffer(ReadOnlyMemory<byte> memory)
         {
-            await m_socket.SendAsync(memory, SocketFlags.None);
+            await m_socket.SendAsync(memory, SocketFlags.None, m_cancellationTokenSource.Token);
         }
 
         public override ValueTask<int> ReceiveBuffer(Memory<byte> buffer)
@@ -25,6 +25,7 @@ namespace ArcticFox.Net.Sockets
 
         protected override async ValueTask CloseSocket()
         {
+            // not passing m_cancellationTokenSource.Token, because it's already canceled
             await m_socket.DisconnectAsync(false);
             m_socket.Close();
         }
