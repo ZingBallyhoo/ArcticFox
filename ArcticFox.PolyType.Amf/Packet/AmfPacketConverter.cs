@@ -2,20 +2,20 @@ namespace ArcticFox.PolyType.Amf.Packet
 {
     public class AmfPacketConverter(AmfOptions options, AmfConverter<AmfHeader> headerConverter, AmfConverter<AmfMessage> messageConverter) : AmfConverter<AmfPacket>
     {
-        public override void Write(ref AmfEncoder encoder, AmfPacket? value)
+        protected override void Write(ref AmfEncoder encoder, AmfPacket? value)
         {
             encoder.PutUInt16((ushort)value!.m_version);
             
             encoder.PutUInt16(checked((ushort)value.m_headers.Count));
             foreach (var header in value.m_headers)
             {
-                headerConverter.Write(ref encoder, header);
+                headerConverter.WriteChecked(ref encoder, header);
             }
             
             encoder.PutUInt16(checked((ushort)value.m_messages.Count));
             foreach (var header in value.m_messages)
             {
-                messageConverter.Write(ref encoder, header);
+                messageConverter.WriteChecked(ref encoder, header);
             }
         }
 

@@ -7,7 +7,7 @@ namespace ArcticFox.PolyType.Amf.Zero
         AmfConverter<TElement> elementConverter, 
         IEnumerableTypeShape<TEnumerable, TElement> typeShape) : AmfConverter<TEnumerable>
     {
-        public override void Write(ref AmfEncoder encoder, TEnumerable? value)
+        protected override void Write(ref AmfEncoder encoder, TEnumerable? value)
         {
             if (value == null)
             {
@@ -26,7 +26,7 @@ namespace ArcticFox.PolyType.Amf.Zero
 
             foreach (var element in enumerable)
             {
-                elementConverter.Write(ref encoder, element);
+                elementConverter.WriteChecked(ref encoder, element);
             }
         }
 

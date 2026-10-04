@@ -4,7 +4,7 @@ namespace ArcticFox.PolyType.Amf.Zero
 {
     public class Amf0NumberConverter<T> : AmfConverter<T> where T : unmanaged, INumberBase<T>
     {
-        public override void Write(ref AmfEncoder encoder, T value)
+        protected override void Write(ref AmfEncoder encoder, T value)
         {
             encoder.PutMarker(Amf0TypeMarker.Number);
             encoder.PutDouble(double.CreateChecked(value));

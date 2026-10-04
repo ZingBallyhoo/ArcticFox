@@ -2,7 +2,7 @@ namespace ArcticFox.PolyType.Amf.Packet
 {
     public class AmfMessageConverter<TBody>(AmfConverter<TBody> bodyConverter) : AmfConverter<AmfMessage>
     {
-        public override void Write(ref AmfEncoder encoder, AmfMessage? value)
+        protected override void Write(ref AmfEncoder encoder, AmfMessage? value)
         {
             encoder.PutUtf8(value.m_targetUri);
             encoder.PutUtf8(value.m_responseUri);

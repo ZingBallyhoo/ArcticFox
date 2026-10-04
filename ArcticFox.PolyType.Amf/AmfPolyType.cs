@@ -9,10 +9,10 @@ namespace ArcticFox.PolyType.Amf
         {
             var converter = (AmfConverter<T>)options.GetAmf0Converter(typeof(T), provider);
             
-            var encoder = new AmfEncoder();
+            var encoder = new AmfEncoder(options);
             try
             {
-                converter.Write(ref encoder, value);
+                converter.WriteChecked(ref encoder, value);
                 return encoder.m_writer.GetData().ToArray();
             } finally
             {

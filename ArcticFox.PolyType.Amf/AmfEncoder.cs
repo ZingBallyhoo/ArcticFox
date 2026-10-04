@@ -7,10 +7,13 @@ namespace ArcticFox.PolyType.Amf
     public ref struct AmfEncoder
     {
         public GrowingBitWriter m_writer;
+        private readonly AmfOptions m_options;
+        private int m_depth;
         
-        public AmfEncoder()
+        public AmfEncoder(AmfOptions options)
         {
             m_writer = new GrowingBitWriter();
+            m_options = options;
         }
         
         public void PutMarker(Amf0TypeMarker marker)
@@ -43,6 +46,20 @@ namespace ArcticFox.PolyType.Amf
         public void PutDouble(double value)
         {
             m_writer.WriteDoubleBigEndian(value);
+        }
+        
+        public void IncrementDepth()
+        {
+            m_depth++;
+            if (m_depth > m_options.m_maxDepth)
+            {
+                throw new InvalidDataException("Recursion limit reached");
+            }
+        }
+
+        public void DecrementDepth()
+        {
+            m_depth--;
         }
         
         public void Dispose()

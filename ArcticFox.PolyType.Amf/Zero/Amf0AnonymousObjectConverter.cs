@@ -4,7 +4,7 @@ namespace ArcticFox.PolyType.Amf.Zero
 {
     public class Amf0AnonymousObjectConverter(AmfConverter propertyConverter) : AmfConverter<ExpandoObject>
     {
-        public override void Write(ref AmfEncoder encoder, ExpandoObject? value)
+        protected override void Write(ref AmfEncoder encoder, ExpandoObject? value)
         {
             throw new NotImplementedException();
         }

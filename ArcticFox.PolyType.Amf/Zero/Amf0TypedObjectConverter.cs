@@ -3,8 +3,8 @@ namespace ArcticFox.PolyType.Amf.Zero
     public class Amf0TypedObjectConverter<T>(string moniker, Func<T> defaultConstructor, Amf0PropertyConverter<T>[] properties) : AmfConverter<T>
     {
         private readonly Amf0PropertyConverter<T>[] m_propertiesToWrite = properties.Where(prop => prop.HasGetter).ToArray();
-        
-        public override void Write(ref AmfEncoder encoder, T? value)
+
+        protected override void Write(ref AmfEncoder encoder, T? value)
         {
             encoder.PutMarker(Amf0TypeMarker.TypedObject);
             encoder.PutUtf8(moniker);

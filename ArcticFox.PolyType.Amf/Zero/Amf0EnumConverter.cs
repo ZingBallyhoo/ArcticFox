@@ -4,9 +4,9 @@ namespace ArcticFox.PolyType.Amf.Zero
     {
         public required AmfConverter<TUnderlying> m_underlying;
 
-        public override void Write(ref AmfEncoder encoder, TEnum? value)
+        protected override void Write(ref AmfEncoder encoder, TEnum? value)
         {
-            m_underlying.Write(ref encoder, (TUnderlying)(object)value!);
+            m_underlying.WriteChecked(ref encoder, (TUnderlying)(object)value!);
         }
 
         protected override TEnum? Read(ref AmfDecoder decoder)

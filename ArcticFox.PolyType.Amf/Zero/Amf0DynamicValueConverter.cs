@@ -15,8 +15,8 @@ namespace ArcticFox.PolyType.Amf.Zero
             
             return converter;
         }
-        
-        public override void Write(ref AmfEncoder encoder, object? value)
+
+        protected override void Write(ref AmfEncoder encoder, object? value)
         {
             if (value == null)
             {

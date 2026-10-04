@@ -46,7 +46,7 @@ namespace ArcticFox.PolyType.Amf.Zero
         public override void Write(ref AmfEncoder encoder, ref TDeclaringType declaringType)
         {
             var value = _getter!(ref declaringType);
-            _propertyConverter.Write(ref encoder, value);
+            _propertyConverter.WriteChecked(ref encoder, value);
         }
     }
 }

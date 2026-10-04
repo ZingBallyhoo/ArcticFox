@@ -2,7 +2,7 @@ namespace ArcticFox.PolyType.Amf.Zero
 {
     public class Amf0StringConverter : AmfConverter<string>
     {
-        public override void Write(ref AmfEncoder encoder, string? value)
+        protected override void Write(ref AmfEncoder encoder, string? value)
         {
             if (value == null)
             {

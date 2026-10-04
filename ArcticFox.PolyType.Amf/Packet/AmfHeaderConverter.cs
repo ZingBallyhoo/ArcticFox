@@ -2,7 +2,7 @@ namespace ArcticFox.PolyType.Amf.Packet
 {
     public class AmfHeaderConverter<TContent>(AmfConverter<TContent> contentConverter) : AmfConverter<AmfHeader>
     {
-        public override void Write(ref AmfEncoder encoder, AmfHeader? value)
+        protected override void Write(ref AmfEncoder encoder, AmfHeader? value)
         {
         }
 
