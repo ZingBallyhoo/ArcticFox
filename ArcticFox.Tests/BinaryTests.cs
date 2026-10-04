@@ -344,6 +344,20 @@ namespace ArcticFox.Tests
         }
         
         [Fact]
+        public void ZeroTruncatedRemainingBits_ReadBits()
+        {
+            var reader = new ZeroTruncatedBitReader([0b1010_0000]);
+            reader.SeekBit(4); // make only 4 bits remain in the bitstream
+            
+            // not using a primitive, that would already be zeroed
+            // instead an explicit buffer with existing data
+            var buffer = new byte[] { 0xFF, 0xFF };
+            reader.ReadBits(buffer, 8);
+            Assert.Equal(0b1010, buffer[0]); // the bits past the end of the buffer should have been zeroed
+            Assert.Equal(0xFF, buffer[1]); // but data past bitCount should be left alone
+        }
+        
+        [Fact]
         public void WriteBitsToCurrentDoesntClobber()
         {
             var writer = new BitWriter(new byte[1]);

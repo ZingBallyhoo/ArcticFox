@@ -34,7 +34,7 @@ namespace ArcticFox.Codec.Binary
             var readableSize = Math.Min(output.Length, m_remainingBytes);
             
             m_reader.ReadBytesTo(output, readableSize);
-            output.Slice(readableSize).Fill(0);
+            output.Slice(readableSize).Clear();
         }
         
         public bool ReadBit()
@@ -57,13 +57,21 @@ namespace ArcticFox.Codec.Binary
         public void ReadBits(Span<byte> span, uint bitCount)
         {
             var readableSize = Math.Min(bitCount, m_remainingBits);
-            var readableBytes = readableSize / 8;
             
             var writer = new BitWriter(span);
             writer.WriteBits(ref m_reader, readableSize);
-            writer.FlushBit();
             
-            span.Slice((int)readableBytes).Fill(0);
+            // pretty awkward, but i haven't found a better way of doing this.
+            // bits between readableSize and bitCount need to be zeroed in the destination.
+            // there could be trailing data, and that needs to be left alone.
+            // todo: use a bigger value type.
+            var padBits = bitCount - readableSize;
+            while (padBits > 0)
+            {
+                var chunk = Math.Min(padBits, sizeof(ulong) * 8);
+                writer.WriteBits(0ul, chunk);
+                padBits -= chunk;
+            }
         }
         
         public void SkipBytes(int count)
