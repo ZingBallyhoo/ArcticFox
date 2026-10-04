@@ -16,6 +16,7 @@ namespace ArcticFox.PolyType.Amf
         public int m_maxHeaders = 10;
         public int m_maxArrayElements = 100;
         public int m_maxDepth = 64; // note: represents deserializer stack depth, not literal object depth
+        public int m_maxAnonymousProperties = 50;
         
         private readonly Dictionary<string, Type> m_typedObjectTypes = new Dictionary<string, Type>();
         private readonly Dictionary<Type, string> m_typedObjectMonikers = new Dictionary<Type, string>();

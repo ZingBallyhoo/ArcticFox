@@ -20,6 +20,7 @@ namespace ArcticFox.PolyType.Amf.Zero
             var expando = new ExpandoObject();
             IDictionary<string, object?> dict = expando;
 
+            var propertyLimit = decoder.GetOptions().m_maxAnonymousProperties;
             while (true)
             {
                 var propertyName = decoder.ReadUtf8();
@@ -31,6 +32,11 @@ namespace ArcticFox.PolyType.Amf.Zero
                         throw new InvalidDataException($"expected ObjectEnd, got {propertyValueMarker}");
                     }
                     break;
+                }
+                
+                if (dict.Count >= propertyLimit)
+                {
+                    throw new InvalidDataException($"number of anonymous properties over configured limit. (at least){dict.Count} > {propertyLimit}");
                 }
                 
                 dict.Add(propertyName, propertyConverter.ReadAsObject(ref decoder));

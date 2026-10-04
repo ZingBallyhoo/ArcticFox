@@ -10,6 +10,8 @@ namespace ArcticFox.PolyType.Amf
         private readonly AmfOptions m_options;
         private int m_depth;
         
+        public AmfOptions GetOptions() => m_options;
+        
         public AmfDecoder(BitReader reader, AmfOptions options)
         {
             m_reader = reader;
