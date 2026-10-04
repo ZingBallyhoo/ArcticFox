@@ -111,7 +111,7 @@ namespace ArcticFox.Codec.Binary
                     Debug.Assert(m_bitPositionInByte != 0); // writer should not be aligned (or above path would be used)
 
                     byte maxByteCount;
-                    if (Avx2.IsSupported)
+                    if (Vector256<ulong>.IsSupported && Avx2.IsSupported)
                     {
                         maxByteCount = (byte)Vector256<byte>.Count;
                     } else
