@@ -49,10 +49,6 @@ namespace ArcticFox.PolyType.Amf.Zero
                 {
                     return ResolveConverter(typeof(double)).ReadAsObject(ref decoder);
                 }
-                case Amf0TypeMarker.Object:
-                {
-                    return ResolveConverter(typeof(ExpandoObject)).ReadAsObject(ref decoder);
-                }
                 case Amf0TypeMarker.TypedObject:
                 {
                     var peekedName = peekDecoder.ReadUtf8();

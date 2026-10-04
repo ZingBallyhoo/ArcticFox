@@ -16,7 +16,6 @@ namespace ArcticFox.PolyType.Amf
         public int m_maxHeaders = 10;
         public int m_maxArrayElements = 100;
         public int m_maxDepth = 64; // note: represents deserializer stack depth, not literal object depth
-        public int m_maxAnonymousProperties = 50;
         
         private readonly Dictionary<string, Type> m_typedObjectTypes = new Dictionary<string, Type>();
         private readonly Dictionary<Type, string> m_typedObjectMonikers = new Dictionary<Type, string>();
@@ -93,7 +92,6 @@ namespace ArcticFox.PolyType.Amf
             
             // require because the packet is not in the shape provider...
             if (type == typeof(AmfPacket)) return GetBuiltinConverters(provider).m_packetConverter;
-            if (type == typeof(ExpandoObject)) return GetBuiltinConverters(provider).m_anonymousObject;
 
             var typeShape = provider.GetTypeShapeOrThrow(type);
             var scopedCache = m_amf0ConverterCaches.GetScopedCache(typeShape);
@@ -113,7 +111,6 @@ namespace ArcticFox.PolyType.Amf
         private class AmfBuiltinConverters(AmfOptions options, ITypeShapeProvider provider)
         {
             private AmfConverter<object> m_objectConverter => (AmfConverter<object>)options.GetAmf0Converter(typeof(object), provider);
-            public Amf0AnonymousObjectConverter m_anonymousObject => field ??= new Amf0AnonymousObjectConverter(m_objectConverter);
             
             private AmfHeaderConverter<object> m_headerConverter => field ??= new AmfHeaderConverter<object>(m_objectConverter);
             private AmfMessageConverter<object> m_messageConverter => field ??= new AmfMessageConverter<object>(m_objectConverter);
