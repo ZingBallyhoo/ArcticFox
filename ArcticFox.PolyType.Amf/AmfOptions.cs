@@ -52,7 +52,7 @@ namespace ArcticFox.PolyType.Amf
             m_builtinConverterCaches = new ConditionalWeakTable<ITypeShapeProvider, AmfBuiltinConverters>();
         }
         
-        public void AddTypedObject<T>() where T : IShapeable<T>
+        public void AddTypedObject<T>()
         {
             // todo: name override...?
             // would need to be shared with serializer impl

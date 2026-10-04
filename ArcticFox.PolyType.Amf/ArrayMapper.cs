@@ -153,13 +153,24 @@ namespace ArcticFox.PolyType.Amf
         
         public static T ToObject<T>(object? arrayRaw) where T : IShapeable<T>
         {
-            var converter = (Converter<T>)s_cache.GetOrAdd(T.GetTypeShape())!;
+            return ToObject(arrayRaw, T.GetTypeShape());
+        }
+        
+        public static T ToObject<T>(object? arrayRaw, ITypeShape<T> typeShape)
+        {
+            var converter = (Converter<T>)s_cache.GetOrAdd(typeShape)!;
             return converter.Read(arrayRaw);
         }
         
         public static object? ToArray<T>(T obj) where T : IShapeable<T>
         {
             var converter = (Converter<T>)s_cache.GetOrAdd(T.GetTypeShape())!;
+            return converter.Write(obj);
+        }
+        
+        public static object? ToArray<T>(T obj, ITypeShape<T> typeShape)
+        {
+            var converter = (Converter<T>)s_cache.GetOrAdd(typeShape)!;
             return converter.Write(obj);
         }
     }
