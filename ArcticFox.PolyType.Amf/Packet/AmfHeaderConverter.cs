@@ -4,6 +4,7 @@ namespace ArcticFox.PolyType.Amf.Packet
     {
         protected override void Write(ref AmfEncoder encoder, AmfHeader? value)
         {
+            throw new NotImplementedException("AmfHeaderConverter.Write");
         }
 
         protected override AmfHeader? Read(ref AmfDecoder decoder)
